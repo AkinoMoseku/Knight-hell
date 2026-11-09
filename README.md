@@ -311,6 +311,11 @@ validation, exception review, approval, execution, results, audit and settings.
 
 ### 13. Portable Windows executable
 
+Download the current build:
+
+- [FlowRemoteDemo.exe](dist/FlowRemoteDemo.exe)
+- [Windows executable guide](WINDOWS_EXE.md)
+
 Build a one-file Windows demo with:
 
 ```powershell
@@ -341,9 +346,9 @@ FlowRemoteDemo.exe --smoke-test
 FlowRemoteDemo.exe --headless --no-browser
 ```
 
-The generated `dist/` and `build/` directories are intentionally ignored by Git.
-The source package, PyInstaller spec and build script are versioned so the EXE
-can be regenerated.
+The final `dist/FlowRemoteDemo.exe` and its SHA-256 checksum are deliberately
+tracked in Git for direct download. Other generated files under `dist/` and all
+files under `build/` remain ignored.
 
 ---
 
