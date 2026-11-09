@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Set up AI-RPA - FlowRemote{% endblock %}
+{% block content %}
+<div class="page-head onboarding-head">
+  <p class="eyebrow">Welcome to FlowRemote</p>
+  <h1>Set up your AI-RPA workspace</h1>
+  <p class="sub">Your account is ready. Choose how AI suggestions and local RPA targets
+    should work for this user.</p>
+</div>
+{% if error %}<p class="alert">{{ error }}</p>{% endif %}
+
+<div class="onboarding-progress" aria-label="Setup progress">
+  <span class="done">1 · Account</span>
+  <span class="active">2 · AI &amp; RPA</span>
+  <span>3 · Start</span>
+</div>
+
+<form method="post" action="/onboarding" class="onboarding-form">
+  <section class="panel onboarding-card" data-guide-section="onboarding-ai">
+    <div class="onboarding-card-head">
+      <div>
+        <p class="eyebrow">Step 1</p>
+        <h2>AI suggestions</h2>
+      </div>
+      <span class="badge badge-ai">Human review required</span>
+    </div>
+    <p class="muted">AI recommends corrections. It never approves or executes a task.</p>
+    <div class="form-grid">
+      <label class="field-label">Provider
+        <select name="provider" id="onboarding-provider">
+          <option value="offline" {% if ai.provider == 'offline' %}selected{% endif %}>
+            Demo AI — offline grounded rules
+          </option>
+          <option value="openai" {% if ai.provider == 'openai' %}selected{% endif %}>
+            OpenAI Responses API
+          </option>
+        </select>
+      </label>
+      <label class="field-label">Model
+        <input name="model" id="onboarding-model" maxlength="160"
+               value="{{ ai.model }}" placeholder="gpt-6-astra">
+      </label>
+    </div>
+    <label class="field-label">API base URL <span class="muted">(optional)</span>
+      <input name="base_url" value="{{ ai.base_url }}" inputmode="url"
+             placeholder="https://api.openai.com/v1">
+    </label>
+    <label class="field-label">API key
+      <input name="api_key" type="password" maxlength="4096"
+             autocomplete="new-password"
+             placeholder="{% if ai.key_configured %}Saved key: {{ ai.key_hint }}{% else %}Optional for Demo AI{% endif %}">
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" name="ai_enabled" value="1"
+             {% if automation.ai_enabled %}checked{% endif %}>
+      Enable AI suggestions
+    </label>
+  </section>
+
+  <section class="panel onboarding-card" data-guide-section="onboarding-rpa">
+    <div class="onboarding-card-head">
+      <div>
+        <p class="eyebrow">Step 2</p>
+        <h2>RPA targets and limits</h2>
+      </div>
+      <span class="badge">Local demo runtime</span>
+    </div>
+    <label class="checkbox-row">
+      <input type="checkbox" name="rpa_enabled" value="1"
+             {% if automation.rpa_enabled %}checked{% endif %}>
+      Enable RPA execution
+    </label>
+    <div class="connection-grid">
+      {% for connection in connections %}
+      <label class="connection-option">
+        <input type="checkbox" name="connection_{{ connection.kind }}" value="1"
+               {% if connection.enabled %}checked{% endif %}>
+        <span>
+          <strong>{{ connection.name }}</strong>
+          <small>{{ connection.kind|replace('_', ' ') }} · {{ connection.health }}</small>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="form-grid">
+      <label class="field-label">Max records per task
+        <input type="number" name="max_records_per_task" min="1" max="10000"
+               value="{{ automation.max_records_per_task }}">
+      </label>
+      <label class="field-label">AI requests per day
+        <input type="number" name="ai_daily_limit" min="0" max="100000"
+               value="{{ automation.ai_daily_limit }}">
+      </label>
+      <label class="field-label">RPA steps per day
+        <input type="number" name="rpa_daily_limit" min="0" max="10000"
+               value="{{ automation.rpa_daily_limit }}">
+      </label>
+    </div>
+    <p class="notice">Approval is always required. AI cannot change this rule.</p>
+  </section>
+
+  <div class="onboarding-actions">
+    <button type="button" class="btn-ghost" id="use-demo-preset">Use demo preset</button>
+    <button type="submit" class="btn-primary">Finish setup</button>
+  </div>
+</form>
+{% endblock %}

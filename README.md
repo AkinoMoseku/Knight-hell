@@ -5,7 +5,7 @@ combines Excel ingestion, deterministic order validation, grounded AI correction
 suggestions, human review and approval, simulated RPA execution, audit logging,
 local-first browser caching and portable local/enterprise database storage.
 
-The current version is **0.4.0**. It is a complete promotional and course
+The current version is **0.5.0**. It is a complete promotional and course
 demonstration application, but it is **not yet a production enterprise AI-RPA
 product** because the RPA targets remain simulated and several production
 security and operations features are still missing.
@@ -26,6 +26,9 @@ security and operations features are still missing.
 | Local browser cache and offline review Outbox | Implemented |
 | PWA install and offline summary page | Implemented |
 | SQLite local / PostgreSQL enterprise switching | Implemented |
+| Registration onboarding and AI-RPA management | Implemented |
+| Light theme and section-by-section guided flow | Implemented |
+| Portable Windows demo executable | Implemented and smoke-tested |
 | Real OA/BI/Excel connectors | Not implemented |
 | Autonomous RPA Worker | Not implemented; execution currently advances through web requests |
 | Retry / Resume / Cancel after partial execution | Not implemented |
@@ -273,6 +276,75 @@ account's cached tasks or AI content.
 .\.venv\Scripts\python.exe demo\run_feature3_demo.py --check
 ```
 
+### 11. Registration onboarding and AI-RPA management
+
+New registrations are routed into `/onboarding`, where the user configures:
+
+- AI provider and model.
+- Offline Demo AI or an OpenAI-compatible endpoint.
+- Encrypted API key.
+- Local Excel and HTTP targets.
+- AI and RPA enable/disable controls.
+- Daily request and execution limits.
+- Maximum records per task.
+
+The permanent control is that AI cannot remove human approval.
+
+After setup, `/settings` provides an AI-RPA control center with current model,
+connector status, daily usage, processed records, failures and automation
+limits.
+
+### 12. Light theme and guided flow
+
+The promotional UI defaults to a light theme. Major sections carry stable guide
+anchors, and `guide.js` presents a flow-aware explanation card in the matching
+section:
+
+- Close only the current card.
+- Resume the current card from the toolbar.
+- Move to the next same-page section or page.
+- Exit and restart the guide.
+- Persist guide progress per signed-in account.
+
+The guide covers demo entry, registration, AI-RPA onboarding, upload,
+validation, exception review, approval, execution, results, audit and settings.
+
+### 13. Portable Windows executable
+
+Build a one-file Windows demo with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\build_demo_exe.ps1
+```
+
+Output:
+
+```text
+dist\FlowRemoteDemo.exe
+```
+
+Double-clicking the EXE:
+
+1. Creates isolated runtime data under `%LOCALAPPDATA%\FlowRemoteDemo`.
+2. Applies all database migrations.
+3. Seeds the demonstration task and demo accounts.
+4. Starts FastAPI on a local loopback port.
+5. Waits for `/health`.
+6. Opens the default browser at `/demo`.
+7. Shows a small control window for opening the browser, opening the data
+   folder, or stopping the local services.
+
+The EXE also supports:
+
+```text
+FlowRemoteDemo.exe --smoke-test
+FlowRemoteDemo.exe --headless --no-browser
+```
+
+The generated `dist/` and `build/` directories are intentionally ignored by Git.
+The source package, PyInstaller spec and build script are versioned so the EXE
+can be regenerated.
+
 ---
 
 ## Architecture
@@ -505,7 +577,7 @@ in-app **AI settings** window.
 
 Current repository status:
 
-- **230 tests passed**
+- **234 tests passed**
 - **11 subtests passed**
 - Python compilation passed
 - Browser JavaScript syntax passed
@@ -529,6 +601,8 @@ Coverage includes:
 - Offline decision idempotency and revision conflicts.
 - Multi-field offline corrections.
 - Local and enterprise storage selection.
+- Registration onboarding and AI-RPA usage controls.
+- Demo landing page, guide assets, Light theme assets and EXE smoke checks.
 
 ---
 

@@ -87,6 +87,7 @@ def create_user(
     role: Role | str = Role.OPERATOR,
     device: str | None = None,
     user_id: str | None = None,
+    onboarding_completed: bool = True,
 ) -> dict[str, Any]:
     """Create an account and return its row. Raises AccountError on bad input."""
     clean_name = (name or "").strip()
@@ -110,6 +111,18 @@ def create_user(
             device,
             hash_password(password),
             utc_now(),
+        ),
+    )
+    now = utc_now()
+    db.execute(
+        "INSERT INTO user_onboarding (user_id, current_step, completed_at,"
+        " created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+        (
+            identifier,
+            "complete" if onboarding_completed else "welcome",
+            now if onboarding_completed else None,
+            now,
+            now,
         ),
     )
     row = get_user_row(db, identifier)

@@ -28,6 +28,11 @@ from flowremote.contracts.models import ExecutionRun, ModelError, User
 from flowremote.control_plane.activity import ENGINE_NAME, log_event, recent_events
 from flowremote.control_plane.db import Database, utc_now
 from flowremote.control_plane.sync import touch_task
+from flowremote.control_plane.user_management import (
+    ensure_user_automation,
+    record_usage,
+    usage_summary,
+)
 from flowremote.rpa.execution import (
     STEP_SIZE,
     ExecutionError,
@@ -98,6 +103,24 @@ def execution_page(
     context = load_task_page(db, user, task_id)
     if context is None:
         raise HTTPException(status_code=404, detail="task not found")
+    automation = ensure_user_automation(db, user.id)
+    usage = usage_summary(db, user.id)
+    if not automation["rpa_enabled"]:
+        if _wants_json(request):
+            return JSONResponse(
+                {"error": "RPA execution is disabled in AI & RPA settings."},
+                status_code=400,
+            )
+        context["error"] = "RPA execution is disabled in AI & RPA settings."
+        return render(request, "task.html", context, status_code=400)
+    if usage["rpa_today"] >= int(automation["rpa_daily_limit"]):
+        if _wants_json(request):
+            return JSONResponse(
+                {"error": "The daily RPA step limit has been reached."},
+                status_code=429,
+            )
+        context["error"] = "The daily RPA step limit has been reached."
+        return render(request, "task.html", context, status_code=429)
     run = _run_model(db, task_id)
     if run is None:
         return RedirectResponse(f"/tasks/{task_id}", status_code=303)
@@ -129,6 +152,24 @@ def execution_step(
     context = load_task_page(db, user, task_id)
     if context is None:
         raise HTTPException(status_code=404, detail="task not found")
+    automation = ensure_user_automation(db, user.id)
+    usage = usage_summary(db, user.id)
+    if not automation["rpa_enabled"]:
+        if _wants_json(request):
+            return JSONResponse(
+                {"error": "RPA execution is disabled in AI & RPA settings."},
+                status_code=400,
+            )
+        context["error"] = "RPA execution is disabled in AI & RPA settings."
+        return render(request, "task.html", context, status_code=400)
+    if usage["rpa_today"] >= int(automation["rpa_daily_limit"]):
+        if _wants_json(request):
+            return JSONResponse(
+                {"error": "The daily RPA step limit has been reached."},
+                status_code=429,
+            )
+        context["error"] = "The daily RPA step limit has been reached."
+        return render(request, "task.html", context, status_code=429)
     run = _run_model(db, task_id)
     if run is None:
         if _wants_json(request):
@@ -213,6 +254,15 @@ def execution_step(
                 },
             )
         touch_task(db, task_id)
+        if context["task"].get("owner_id"):
+            record_usage(
+                db,
+                user_id=context["task"]["owner_id"],
+                event_type="rpa_step",
+                record_count=outcome.advanced,
+                duration_ms=duration_ms or 0,
+                success=outcome.status is not RunState.PARTIAL,
+            )
 
     updated = _run_model(db, task_id) or run
     if _wants_json(request):

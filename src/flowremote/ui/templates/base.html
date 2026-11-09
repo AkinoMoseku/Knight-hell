@@ -7,11 +7,16 @@
   <title>{% block title %}FlowRemote{% endblock %}</title>
   <link rel="manifest" href="/static/manifest.webmanifest">
   <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/app.css?v=20261109b">
-  <script src="/static/app.js?v=20261109b" defer></script>
-  <script src="/static/sync-client.js?v=20261109b" defer></script>
+  <link rel="stylesheet" href="/static/app.css?v=20261109c">
+  <script src="/static/app.js?v=20261109c" defer></script>
+  <script src="/static/sync-client.js?v=20261109c" defer></script>
+  <script src="/static/guide-config.js?v=20261109c" defer></script>
+  <script src="/static/guide.js?v=20261109c" defer></script>
 </head>
-<body data-user-id="{{ user.id if user else '' }}">
+<body
+  data-user-id="{{ user.id if user else '' }}"
+  data-task-id="{{ task.id if task is defined and task else '' }}"
+  data-task-status="{{ task.status if task is defined and task else '' }}">
   <header class="topbar">
     <a class="brand" href="/">
       <span class="mark">FR</span>
@@ -22,6 +27,8 @@
       <span class="badge badge-{{ user.role }}">{{ user.role }}</span>
       <span class="who-name">{{ user.name }}</span>
       <span id="sync-status" class="sync-status" data-state="checking">Checking sync</span>
+      <button id="guide-start" class="btn-ghost" type="button">Guide</button>
+      <a class="btn-ghost" href="/settings">AI &amp; RPA</a>
       <a class="btn-ghost" href="/settings/ai" data-ai-settings-open>AI settings</a>
       <form method="post" action="/logout" class="inline logout-form">
         <button type="submit" class="btn-ghost">Sign out</button>

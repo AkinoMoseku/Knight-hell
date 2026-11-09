@@ -33,8 +33,12 @@ from typing import Any, Protocol, Self, runtime_checkable
 
 # src/flowremote/control_plane/db.py -> project root is three levels up.
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DATA_ROOT = Path(
+    os.environ.get("FLOWREMOTE_DATA_DIR", PROJECT_ROOT / "data")
+).expanduser().resolve()
+RUNTIME_ROOT = DATA_ROOT / "runtime"
 MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
-DEFAULT_SQLITE_PATH = PROJECT_ROOT / "data" / "runtime" / "flowremote.db"
+DEFAULT_SQLITE_PATH = RUNTIME_ROOT / "flowremote.db"
 
 
 @dataclass(frozen=True)

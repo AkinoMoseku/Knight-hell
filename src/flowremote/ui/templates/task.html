@@ -24,7 +24,7 @@
 </div>
 {% else %}
 {% if validation %}
-<section class="panel validation-panel">
+<section class="panel validation-panel" data-guide-section="validation-summary">
   <h2>Analysis of your uploaded orders</h2>
   <p class="small muted">{{ upload.worksheet }} · Headers on Excel row {{ validation.header_row }} ·
     Checked {{ validation.validated_at }} · {{ validation.rule_version }}</p>
@@ -42,7 +42,7 @@
 {% else %}
 <p class="notice">Demonstration task: these records and suggestions were seeded for the prototype.</p>
 {% endif %}
-<div class="stats stats-wide">
+<div class="stats stats-wide" data-guide-section="task-stats">
   <div><span class="n">{{ task.batch_size }}</span><span class="l">input</span></div>
   <div><span class="n">{{ task.passed }}</span><span class="l">passed</span></div>
   <div><span class="n">{{ task.flagged }}</span><span class="l">flagged</span></div>
@@ -51,7 +51,7 @@
 </div>
 
 {% if approval %}
-<div class="gate gate-open">
+<div class="gate gate-open" data-guide-section="approval-gate">
   <div>
     <strong>{% if run and run.status == 'partial' %}Execution stopped early{% else %}Approved{% endif %}</strong>
     <span class="small muted">{{ approval.approved_count }} records approved by
@@ -69,7 +69,7 @@
   </div>
 </div>
 {% elif task.status == 'pending_approval' %}
-<div class="gate gate-open">
+<div class="gate gate-open" data-guide-section="approval-gate">
   <div>
     <strong>Ready for approval</strong>
     <span class="small muted">Every exception is resolved.</span>
@@ -77,7 +77,7 @@
   <a class="btn-gate" href="/tasks/{{ task.id }}/approval">Open approval</a>
 </div>
 {% elif proceed_enabled %}
-<div class="gate gate-open">
+<div class="gate gate-open" data-guide-section="approval-gate">
   <div>
     <strong>Proceed to approval</strong>
     <span class="small muted">Every exception is resolved.</span>
@@ -87,7 +87,7 @@
   </form>
 </div>
 {% else %}
-<div class="gate gate-closed">
+<div class="gate gate-closed" data-guide-section="approval-gate">
   <div>
     <strong>Proceed to approval</strong>
     <span class="small muted">{{ unresolved }} unresolved exception(s) still block approval.</span>
@@ -98,7 +98,7 @@
 
 <h2 class="section">Exceptions</h2>
 {% if exceptions %}
-<div class="table-wrap">
+<div class="table-wrap" data-guide-section="exception-review">
   <table class="table">
     <thead>
       <tr>

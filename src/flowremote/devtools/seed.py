@@ -27,7 +27,7 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from flowremote.control_plane.db import PROJECT_ROOT, Database, utc_now  # noqa: E402
+from flowremote.control_plane.db import DATA_ROOT, Database, utc_now  # noqa: E402
 from flowremote.control_plane.auth import hash_password  # noqa: E402
 from flowremote.devtools.xlsx_writer import write_xlsx  # noqa: E402
 
@@ -156,7 +156,7 @@ def build_exceptions(orders: list[dict], registry: list[dict]) -> list[dict]:
 
 
 def write_registry_file(registry: list[dict]) -> Path:
-    path = PROJECT_ROOT / "data" / "seed" / "customer_registry.csv"
+    path = DATA_ROOT / "seed" / "customer_registry.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=["customer_id", "customer_name", "region", "tier"])
@@ -166,7 +166,7 @@ def write_registry_file(registry: list[dict]) -> Path:
 
 
 def write_workbook(orders: list[dict]) -> Path:
-    path = PROJECT_ROOT / "data" / "seed" / SOURCE_FILE
+    path = DATA_ROOT / "seed" / SOURCE_FILE
     header = ["order_id", "customer_name", "customer_id", "quantity", "unit_price",
               "amount", "order_date"]
     rows = [[order[column] for column in header] for order in orders]
@@ -186,6 +186,26 @@ def wipe_task(db: Database) -> None:
         db.execute("DELETE FROM sync_changes WHERE task_id = ?", (TASK_ID,))
         db.execute(
             "DELETE FROM devices WHERE user_id IN "
+            "(SELECT id FROM users WHERE email IN (?, ?))",
+            (OPERATOR_EMAIL, ADMIN_EMAIL),
+        )
+        db.execute(
+            "DELETE FROM usage_events WHERE user_id IN "
+            "(SELECT id FROM users WHERE email IN (?, ?))",
+            (OPERATOR_EMAIL, ADMIN_EMAIL),
+        )
+        db.execute(
+            "DELETE FROM rpa_connections WHERE user_id IN "
+            "(SELECT id FROM users WHERE email IN (?, ?))",
+            (OPERATOR_EMAIL, ADMIN_EMAIL),
+        )
+        db.execute(
+            "DELETE FROM user_automation_settings WHERE user_id IN "
+            "(SELECT id FROM users WHERE email IN (?, ?))",
+            (OPERATOR_EMAIL, ADMIN_EMAIL),
+        )
+        db.execute(
+            "DELETE FROM user_onboarding WHERE user_id IN "
             "(SELECT id FROM users WHERE email IN (?, ?))",
             (OPERATOR_EMAIL, ADMIN_EMAIL),
         )
@@ -333,8 +353,8 @@ def main() -> int:
         workbook_path = write_workbook(orders)
         seed_database(db, orders, exceptions)
 
-        print(f"registry  : {registry_path.relative_to(PROJECT_ROOT)} ({len(registry)} customers)")
-        print(f"workbook  : {workbook_path.relative_to(PROJECT_ROOT)} ({len(orders)} orders)")
+        print(f"registry  : {registry_path} ({len(registry)} customers)")
+        print(f"workbook  : {workbook_path} ({len(orders)} orders)")
         print(f"database  : {db.url}\n")
         print("seeded 1 task, 100 source records, 12 exceptions, 0 decisions, 0 approvals\n")
         print(f"demo accounts (password: {DEMO_PASSWORD})")

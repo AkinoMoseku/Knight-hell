@@ -24,13 +24,17 @@ from flowremote.api.routes import approval as approval_routes
 from flowremote.api.routes import execution as execution_routes
 from flowremote.api.routes import review as review_routes
 from flowremote.api.routes import session as session_routes
+from flowremote.api.routes import onboarding as onboarding_routes
 from flowremote.api.routes import suggestions as suggestion_routes
 from flowremote.api.routes import sync as sync_routes
+from flowremote.api.routes import settings_hub as settings_routes
 from flowremote.api.routes import tasks as task_routes
 from flowremote.api.routes import uploads as upload_routes
 from flowremote.api.sessions import SessionSigner, load_or_create_secret
 from flowremote.control_plane.ai_settings import AISettingCipher
 from flowremote.control_plane.db import (
+    DATA_ROOT,
+    RUNTIME_ROOT,
     PROJECT_ROOT,
     Database,
     StorageBackend,
@@ -39,7 +43,7 @@ from flowremote.control_plane.db import (
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 UI_ROOT = PACKAGE_ROOT / "ui"
-SECRET_PATH = PROJECT_ROOT / "data" / "runtime" / "session.key"
+SECRET_PATH = RUNTIME_ROOT / "session.key"
 load_dotenv(PROJECT_ROOT / ".env")
 
 
@@ -62,19 +66,19 @@ def create_app(
             db.apply_migrations()
         yield
 
-    app = FastAPI(title="FlowRemote", version="0.4.0", lifespan=lifespan)
+    app = FastAPI(title="FlowRemote", version="0.5.0", lifespan=lifespan)
     app.state.database_url = url
     app.state.database_factory = database_factory
     app.state.storage = storage
     app.state.upload_dir = Path(upload_dir or os.environ.get("FLOWREMOTE_UPLOAD_DIR")
-                               or PROJECT_ROOT / "data" / "runtime" / "uploads")
+                               or RUNTIME_ROOT / "uploads")
     app.state.suggestion_provider_override = suggestion_provider
     app.state.suggestion_provider = suggestion_provider or provider_from_env()
     app.state.ai_settings_cipher = AISettingCipher(secret)
     app.state.customer_registry = Path(
         customer_registry
         or os.environ.get("FLOWREMOTE_CUSTOMER_REGISTRY")
-        or PROJECT_ROOT / "data" / "seed" / "customer_registry.csv"
+        or DATA_ROOT / "seed" / "customer_registry.csv"
     )
     app.state.signer = SessionSigner(secret)
     app.state.templates = Jinja2Templates(directory=str(UI_ROOT / "templates"))
@@ -91,8 +95,19 @@ def create_app(
             },
         )
 
+    @app.get("/health", include_in_schema=False)
+    def health():
+        return {
+            "app": "ok",
+            "version": app.version,
+            "storage": storage.mode,
+            "database": storage.engine,
+        }
+
     app.include_router(ai_settings_routes.router)
     app.include_router(session_routes.router)
+    app.include_router(onboarding_routes.router)
+    app.include_router(settings_routes.router)
     app.include_router(upload_routes.router)
     app.include_router(task_routes.router)
     app.include_router(review_routes.router)

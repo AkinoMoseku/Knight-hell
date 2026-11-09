@@ -16,7 +16,7 @@ from flowremote.api.deps import current_user, get_db
 from flowremote.api.rendering import render
 from flowremote.api.routes.tasks import load_task_page, task_visible
 from flowremote.contracts.models import User
-from flowremote.control_plane.db import Database
+from flowremote.control_plane.db import DATA_ROOT, Database
 from flowremote.control_plane.order_validation import FIELDS, ValidationError
 from flowremote.control_plane.uploads import (
     MAX_FILE_BYTES,
@@ -120,6 +120,20 @@ def order_template(user: SessionUser):
         content.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": 'attachment; filename="orders-template.xlsx"'},
+    )
+
+
+@router.get("/demo-orders.xlsx")
+def demo_orders(user: SessionUser):
+    if user is None:
+        return RedirectResponse("/login", status_code=303)
+    path = DATA_ROOT / "seed" / "Orders_September.xlsx"
+    if not path.is_file():
+        raise HTTPException(404, "bundled demo workbook is not available")
+    return FileResponse(
+        path,
+        filename="FlowRemote-Demo-Orders.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
 

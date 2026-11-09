@@ -8,7 +8,8 @@
   <p class="sub">{{ task.workflow }}</p>
 </div>
 
-<div class="result-banner {{ 'result-bad' if partial else 'result-ok' }}">
+<div class="result-banner {{ 'result-bad' if partial else 'result-ok' }}"
+     data-guide-section="result-summary">
   {% if partial %}
   <strong>&#9888;</strong>
   <span>The simulated write stopped after {{ run.written_count }} of {{ run.approved_count }}
@@ -31,7 +32,7 @@
 
 <h2 class="section">Activity log</h2>
 {% if events %}
-<ul class="log">
+<ul class="log" data-guide-section="audit-log">
   {% for event in events %}
   <li class="log-item">
     <span class="log-time">{{ event.occurred_at }}</span>

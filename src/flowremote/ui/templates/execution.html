@@ -8,14 +8,15 @@
   <p class="sub">{{ task.workflow }} · {{ run.approved_count }} approved records</p>
 </div>
 
-<div class="stats stats-wide">
+<div class="stats stats-wide" data-guide-section="execution-stats">
   <div><span class="n">{{ run.approved_count }}</span><span class="l">approved</span></div>
   <div><span class="n" id="written-count">{{ run.written_count }}</span><span class="l">written</span></div>
   <div><span class="n" id="synced-count">{{ run.synced_count }}</span><span class="l">synced</span></div>
   <div><span class="n">{{ task.skipped }}</span><span class="l">skipped</span></div>
 </div>
 
-<div class="progress" id="execution-progress" data-task="{{ task.id }}"
+<div class="progress" id="execution-progress" data-guide-section="execution-progress"
+     data-task="{{ task.id }}"
      data-results="/tasks/{{ task.id }}/results">
   <div class="progress-track"><div class="progress-bar" id="progress-bar"
        style="width: {{ progress }}%"></div></div>

@@ -2,12 +2,13 @@
 {% block title %}New task - FlowRemote{% endblock %}
 {% block content %}
 <a class="back" href="/">&larr; All tasks</a>
-<div class="page-head">
+<div class="page-head" data-guide-section="task-create">
   <p class="eyebrow">START A BATCH</p>
   <h1>New task</h1>
   <p class="sub">Name your task and upload the Excel workbook you want to process.</p>
 </div>
-<form class="upload-card" method="post" action="/tasks" enctype="multipart/form-data">
+<form class="upload-card" method="post" action="/tasks" enctype="multipart/form-data"
+      data-guide-section="task-upload">
   {% if error %}<p class="alert" role="alert">{{ error }} Please select your file again.</p>{% endif %}
   <label for="task-name">Task name</label>
   <input id="task-name" name="name" type="text" maxlength="120" required
@@ -25,7 +26,9 @@
     non-empty row is treated as column headers (within the first 1,000 rows). Leading blank rows
     are skipped. Include 1–10,000 rows below the headers, with at most 256 columns.
     Blank data rows are not counted as records.</p>
-  <p class="small"><a href="/orders-template.xlsx">Download order template</a> · Replace the example row with your orders.</p>
+  <p class="small"><a href="/orders-template.xlsx">Download order template</a>
+    · <a href="/demo-orders.xlsx">Download bundled demo orders</a>
+    · Replace the example row with your orders.</p>
   <p class="small muted">Required columns: order_id (Order ID), customer_name (Customer name),
     customer_id (Customer ID), quantity (Quantity), unit_price (Unit price), amount (Amount), order_date (Order date).
     Common English and Chinese headers are accepted. Paste values instead of formulas.</p>

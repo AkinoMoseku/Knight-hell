@@ -12,6 +12,7 @@ from flowremote.api.sessions import COOKIE_NAME
 from flowremote.contracts.models import User
 from flowremote.control_plane.auth import AccountError, authenticate, create_user
 from flowremote.control_plane.db import Database
+from flowremote.control_plane.user_management import onboarding_complete
 
 router = APIRouter()
 
@@ -36,6 +37,16 @@ def _sign_in(request: Request, response: RedirectResponse, user_id: str) -> Redi
     return response
 
 
+@router.get("/demo", response_class=HTMLResponse)
+def demo_landing(
+    request: Request,
+    user: User | None = Depends(current_user),  # noqa: B008 - FastAPI dependency idiom.
+):
+    if user:
+        return RedirectResponse("/?guide=start", status_code=303)
+    return render(request, "demo_landing.html", {"user": None})
+
+
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request, next: str = "/", user: User | None = Depends(current_user)):
     if user:
@@ -57,7 +68,10 @@ async def login(request: Request, db: Database = Depends(get_db)):
              "error": "That email and password do not match an account."},
             status_code=401,
         )
-    return _sign_in(request, RedirectResponse(target, status_code=303), row["id"])
+    destination = target
+    if target == "/" and not onboarding_complete(db, row["id"]):
+        destination = "/onboarding"
+    return _sign_in(request, RedirectResponse(destination, status_code=303), row["id"])
 
 
 @router.get("/signup", response_class=HTMLResponse)
@@ -83,6 +97,7 @@ async def signup(request: Request, db: Database = Depends(get_db)):
             name=values["name"],
             email=values["email"],
             password=form.get("password", ""),
+            onboarding_completed=False,
         )
     except AccountError as exc:
         return render(
@@ -90,7 +105,11 @@ async def signup(request: Request, db: Database = Depends(get_db)):
             {"user": None, "values": values, "error": str(exc)},
             status_code=400,
         )
-    return _sign_in(request, RedirectResponse("/", status_code=303), row["id"])
+    return _sign_in(
+        request,
+        RedirectResponse("/onboarding?new=1", status_code=303),
+        row["id"],
+    )
 
 
 @router.post("/logout")

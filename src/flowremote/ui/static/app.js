@@ -10,6 +10,18 @@ if (fileInput && fileName) {
   showFileName();
 }
 
+document.getElementById("use-demo-preset")?.addEventListener("click", () => {
+  const provider = document.getElementById("onboarding-provider");
+  const model = document.getElementById("onboarding-model");
+  if (provider) provider.value = "offline";
+  if (model) model.value = "grounded-rules-v1";
+  document.querySelectorAll(
+    '[name="ai_enabled"], [name="rpa_enabled"], [name="connection_local_excel"], [name="connection_local_http"]'
+  ).forEach((input) => {
+    input.checked = true;
+  });
+});
+
 // Native validation messages otherwise use the browser's language, not lang=en.
 document.addEventListener("invalid", (event) => {
   const input = event.target;

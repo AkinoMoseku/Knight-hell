@@ -22,16 +22,17 @@ from flowremote.agent.providers import (
 from flowremote.contracts.enums import ActorKind, SuggestionState
 from flowremote.contracts.models import ExceptionItem, SuggestionRun
 from flowremote.control_plane.activity import ENGINE_NAME, log_event
-from flowremote.control_plane.db import PROJECT_ROOT, Database, new_id
+from flowremote.control_plane.db import DATA_ROOT, Database, new_id
 from flowremote.control_plane.order_validation import (
     FIELDS,
     validate_order,
     validate_proposed_changes,
 )
 from flowremote.control_plane.sync import touch_exception, touch_task
+from flowremote.control_plane.user_management import record_usage
 
 MIN_ACCEPT_CONFIDENCE = 0.70
-DEFAULT_REGISTRY = PROJECT_ROOT / "data" / "seed" / "customer_registry.csv"
+DEFAULT_REGISTRY = DATA_ROOT / "seed" / "customer_registry.csv"
 
 
 class SuggestionError(ValueError):
@@ -263,7 +264,7 @@ def run_suggestion(
     request_id = request_id.strip()
     if not request_id or len(request_id) > 100:
         raise SuggestionError("a valid suggestion request id is required")
-    task = db.query("SELECT status FROM tasks WHERE id = ?", (task_id,))
+    task = db.query("SELECT status, owner_id FROM tasks WHERE id = ?", (task_id,))
     if not task:
         raise SuggestionError("task not found")
     if task[0]["status"] != "review_required":
@@ -447,6 +448,16 @@ def run_suggestion(
                 "duration_ms": duration_ms,
             },
         )
+        if task[0]["owner_id"]:
+            record_usage(
+                db,
+                user_id=task[0]["owner_id"],
+                event_type="ai_suggestion",
+                provider=provider_name,
+                model=provider_model,
+                duration_ms=duration_ms,
+                success=status is SuggestionState.COMPLETED,
+            )
     return _run_row(db, run_id)
 
 

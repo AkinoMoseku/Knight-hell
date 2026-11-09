@@ -14,6 +14,7 @@ from flowremote.api.rendering import render
 from flowremote.api.routes.tasks import load_task_page
 from flowremote.contracts.models import User
 from flowremote.control_plane.db import Database
+from flowremote.control_plane.user_management import ensure_user_automation, usage_summary
 
 router = APIRouter()
 
@@ -32,6 +33,14 @@ async def generate_suggestion(
     if context is None:
         raise HTTPException(status_code=404, detail="task not found")
     form = await read_form(request)
+    automation = ensure_user_automation(db, user.id)
+    usage = usage_summary(db, user.id)
+    if not automation["ai_enabled"]:
+        context["error"] = "AI suggestions are disabled in AI & RPA settings."
+        return render(request, "task.html", context, status_code=400)
+    if usage["ai_today"] >= int(automation["ai_daily_limit"]):
+        context["error"] = "The daily AI request limit has been reached."
+        return render(request, "task.html", context, status_code=429)
     if request.app.state.suggestion_provider_override is not None:
         # Tests and embedding callers can inject a provider explicitly.
         provider = request.app.state.suggestion_provider

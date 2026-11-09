@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}AI &amp; RPA settings - FlowRemote{% endblock %}
+{% block content %}
+<a class="back" href="/">&larr; Dashboard</a>
+<div class="page-head">
+  <p class="eyebrow">Workspace management</p>
+  <h1>AI &amp; RPA control center</h1>
+  <p class="sub">Manage model access, local automation targets, human controls and usage.</p>
+</div>
+{% if saved %}<p class="notice success">Automation settings saved.</p>{% endif %}
+{% if error %}<p class="alert">{{ error }}</p>{% endif %}
+
+<div class="management-grid">
+  <section class="panel management-card" data-guide-section="settings-ai">
+    <div class="management-head">
+      <div>
+        <p class="eyebrow">AI assistant</p>
+        <h2>{{ ai.provider|replace('_', ' ')|title }}</h2>
+      </div>
+      <span class="badge badge-{{ 'accepted' if automation.ai_enabled else 'skipped' }}">
+        {{ 'Enabled' if automation.ai_enabled else 'Disabled' }}
+      </span>
+    </div>
+    <dl class="management-list">
+      <div><dt>Model</dt><dd>{{ ai.model }}</dd></div>
+      <div><dt>Endpoint</dt><dd>{{ ai.base_url or 'Default endpoint' }}</dd></div>
+      <div><dt>API key</dt>
+        <dd>{{ ai.key_hint if ai.key_configured else 'Not configured' }}</dd></div>
+      <div><dt>Daily limit</dt><dd>{{ automation.ai_daily_limit }} requests</dd></div>
+    </dl>
+    <a class="btn-gate" href="/settings/ai">Manage AI connection</a>
+  </section>
+
+  <section class="panel management-card" data-guide-section="settings-usage">
+    <div class="management-head">
+      <div>
+        <p class="eyebrow">Usage</p>
+        <h2>Current workspace</h2>
+      </div>
+    </div>
+    <div class="usage-grid">
+      <div><strong>{{ usage.tasks }}</strong><span>tasks</span></div>
+      <div><strong>{{ usage.ai_today }} / {{ automation.ai_daily_limit }}</strong><span>AI today</span></div>
+      <div><strong>{{ usage.rpa_today }} / {{ automation.rpa_daily_limit }}</strong><span>RPA steps today</span></div>
+      <div><strong>{{ usage.records_processed }}</strong><span>records</span></div>
+      <div><strong>{{ usage.failures }}</strong><span>failures</span></div>
+    </div>
+  </section>
+</div>
+
+<form method="post" action="/settings/automation" class="panel management-form"
+      data-guide-section="settings-rpa">
+  <div class="management-head">
+    <div>
+      <p class="eyebrow">Automation policy</p>
+      <h2>RPA usage controls</h2>
+    </div>
+    <span class="badge">Approval locked on</span>
+  </div>
+  <div class="toggle-grid">
+    <label class="checkbox-row">
+      <input type="checkbox" name="ai_enabled" value="1"
+             {% if automation.ai_enabled %}checked{% endif %}>
+      AI suggestions enabled
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" name="rpa_enabled" value="1"
+             {% if automation.rpa_enabled %}checked{% endif %}>
+      RPA execution enabled
+    </label>
+  </div>
+  <div class="connection-grid">
+    {% for connection in connections %}
+    <label class="connection-option">
+      <input type="checkbox" name="connection_{{ connection.kind }}" value="1"
+             {% if connection.enabled %}checked{% endif %}>
+      <span>
+        <strong>{{ connection.name }}</strong>
+        <small>{{ connection.health }} · {{ connection.kind|replace('_', ' ') }}</small>
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+  <div class="form-grid">
+    <label class="field-label">Max records per task
+      <input type="number" name="max_records_per_task" min="1" max="10000"
+             value="{{ automation.max_records_per_task }}">
+    </label>
+    <label class="field-label">AI daily limit
+      <input type="number" name="ai_daily_limit" min="0" max="100000"
+             value="{{ automation.ai_daily_limit }}">
+    </label>
+    <label class="field-label">RPA daily limit
+      <input type="number" name="rpa_daily_limit" min="0" max="10000"
+             value="{{ automation.rpa_daily_limit }}">
+    </label>
+  </div>
+  <div class="onboarding-actions">
+    <a class="btn-ghost" href="/onboarding">Reopen setup guide</a>
+    <button class="btn-primary" type="submit">Save automation controls</button>
+  </div>
+</form>
+{% endblock %}

@@ -9,7 +9,7 @@
     {{ task.primary_target }} and {{ task.secondary_target }}.</p>
 </div>
 {% if error %}<p class="alert">{{ error }}</p>{% endif %}
-<div class="stats stats-wide">
+<div class="stats stats-wide" data-guide-section="approval-summary">
   <div><span class="n">{{ task.batch_size }}</span><span class="l">input</span></div>
   <div><span class="n">{{ task.skipped }}</span><span class="l">skipped</span></div>
   <div><span class="n">{{ task.ready }}</span><span class="l">ready</span></div>
@@ -47,7 +47,7 @@
   </ul>
 </div>
 <p class="notice">Validation does not write to OA or BI. Only this approval releases the write.</p>
-<div class="approval-actions">
+<div class="approval-actions" data-guide-section="approval-action">
   <form method="post" action="/tasks/{{ task.id }}/approval">
     <button class="btn-primary" type="submit">Approve &amp; Execute</button>
   </form>

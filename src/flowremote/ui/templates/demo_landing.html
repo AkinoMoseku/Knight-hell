@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}FlowRemote guided demo{% endblock %}
+{% block content %}
+<section class="demo-hero" data-guide-section="demo-welcome">
+  <p class="eyebrow">Interactive product demo</p>
+  <h1>AI suggestions. Human decisions. Auditable RPA.</h1>
+  <p class="sub">Create an account to configure your own AI-RPA workspace, or use the
+    seeded operator account for a quick tour.</p>
+  <div class="demo-actions">
+    <a class="btn-primary" href="/signup">Create account</a>
+    <a class="btn-ghost" href="/login">Sign in</a>
+  </div>
+  <form method="post" action="/login" class="demo-quick-login">
+    <input type="hidden" name="email" value="alex.morgan@example.com">
+    <input type="hidden" name="password" value="123456">
+    <button class="btn-ghost" type="submit">Quick demo login</button>
+  </form>
+</section>
+
+<div class="demo-feature-grid">
+  <article class="panel">
+    <p class="eyebrow">Review</p>
+    <h2>Grounded AI advice</h2>
+    <p class="muted">Suggestions include evidence, confidence and validation.</p>
+  </article>
+  <article class="panel">
+    <p class="eyebrow">Control</p>
+    <h2>Human approval</h2>
+    <p class="muted">AI never approves, skips or executes data on its own.</p>
+  </article>
+  <article class="panel">
+    <p class="eyebrow">Evidence</p>
+    <h2>Audit and local cache</h2>
+    <p class="muted">Append-only events, offline review and revision-safe sync.</p>
+  </article>
+</div>
+{% endblock %}
