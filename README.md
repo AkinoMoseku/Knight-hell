@@ -1,173 +1,494 @@
-﻿# FlowRemote
+# FlowRemote AI-RPA
 
-Mobile supervision and approval for AI-assisted data processing. Week 7 adds the
-third feature: an operator can request a grounded AI correction for an exception,
-inspect its confidence and evidence, and explicitly accept it. Execution is
-simulated — nothing is written to a real OA or BI system.
+FlowRemote is a browser-based control plane for AI-assisted data processing. It
+combines Excel ingestion, deterministic order validation, grounded AI correction
+suggestions, human review and approval, simulated RPA execution, audit logging,
+local-first browser caching and portable local/enterprise database storage.
 
-## What works today
+The current version is **0.4.0**. It is a complete promotional and course
+demonstration application, but it is **not yet a production enterprise AI-RPA
+product** because the RPA targets remain simulated and several production
+security and operations features are still missing.
 
-- `src/flowremote/contracts/` - enums and domain models; every field, its type
-  and its rules live here once.
-- `src/flowremote/control_plane/` - the database (migrations, one
-  `DATABASE_URL` for SQLite and PostgreSQL), the review rules (tally, approval
-  gate), password/account handling, and the append-only activity log.
-- `src/flowremote/agent/` - provider-independent suggestion contracts, a
-  deterministic offline provider, the OpenAI structured-output provider, and
-  the validation/audit service.
-- `src/flowremote/api/` - FastAPI app: sign-up, sign-in, sign-out, signed
-  session cookies, task list and task detail filtered by role, the
-  Accept / Edit / Skip endpoint, the approval page and the approval write, and
-  the AI-suggestion route plus the execution progress, results and
-  activity-export routes.
-- `src/flowremote/rpa/` - the step rules for one execution run (pure functions).
-- `src/flowremote/connectors/` - simulated OA / BI targets; no network calls.
-- `src/flowremote/ui/` - Jinja templates and one dark stylesheet.
-- `src/flowremote/devtools/` - the demonstration data generator.
-- `tests/` - model rules, AI providers and suggestion verification, review
-  rules, database constraints, passwords, sessions, authentication, isolation,
-  decisions, approval, execution and workbook uploads.
+---
 
-## Run it
+## Current maturity
 
-```powershell
-cd 'E:\knight hell'
+| Area | Status |
+| --- | --- |
+| Account registration, login and persistent users | Implemented |
+| Task creation and Excel upload | Implemented |
+| Order validation and exception detection | Implemented |
+| AI-assisted exception suggestions | Implemented |
+| Per-user AI provider/model configuration | Implemented |
+| Human Accept/Edit/Skip and approval gate | Implemented |
+| Execution progress, results and audit log | Implemented with simulated targets |
+| Local browser cache and offline review Outbox | Implemented |
+| PWA install and offline summary page | Implemented |
+| SQLite local / PostgreSQL enterprise switching | Implemented |
+| Real OA/BI/Excel connectors | Not implemented |
+| Autonomous RPA Worker | Not implemented; execution currently advances through web requests |
+| Retry / Resume / Cancel after partial execution | Not implemented |
+| Production SaaS security and device revocation | Not implemented |
 
-# 1. dependencies (already installed by scripts\setup.ps1)
-uv sync
+Typical intended flow:
 
-# 2. demonstration data
-uv run python src\flowremote\devtools\seed.py --reset --verify
-
-# 3. the browser interface
-uv run uvicorn flowremote.api.app:app --reload --host 127.0.0.1 --port 8000
-
-# 4. tests
-uv run python -m pytest tests -q
+```text
+Register / Login
+→ Upload source Excel
+→ Validate order data
+→ Review detected exceptions
+→ Request or inspect AI suggestion
+→ Accept / Edit / Skip
+→ Approve batch
+→ Execute approved records through simulated targets
+→ View results and audit activity
 ```
 
-Open `http://127.0.0.1:8000`.
+With the local-first client:
 
-## User persistence and enterprise database switching
+```text
+Server task snapshot
+→ IndexedDB cache
+→ Offline Accept / Edit / Skip
+→ Local Outbox
+→ Reconnect
+→ Revision-checked idempotent synchronization
+→ Updated authoritative server state
+```
 
-Registration is persistent. A new account is stored in the `users` table with a
-salted PBKDF2 password hash, and sign-in reads that database on every request.
-With the default local configuration, `data/runtime/flowremote.db` survives app
-restarts, so a registered user can sign in later. Do not run the development
-`seed.py --reset` command after creating accounts you want to keep: reset is
-intended only for rebuilding the demonstration data.
+---
+
+## Implemented features
+
+### 1. Registration, authentication and isolation
+
+- User registration with name, email and password.
+- PBKDF2-HMAC-SHA256 password hashing with a per-user random salt.
+- Signed, HTTP-only browser session cookie.
+- Login, logout, signup and duplicate-email validation.
+- Operator users only see tasks they own.
+- Administrators can see all tasks.
+- Unauthorized task access returns `404` rather than confirming that the task
+  exists.
+- Registered users are stored in the selected database and can log in again
+  after an application restart.
+
+### 2. Portable local/enterprise storage
 
 The application uses a `StorageBackend` interface and a replaceable database
-factory. Routes and authentication do not know whether the implementation is
-local SQLite or an enterprise PostgreSQL database.
+factory. Authentication and routes do not know whether storage is local SQLite
+or enterprise PostgreSQL.
 
-Local development:
+Local mode:
 
 ```text
 FLOWREMOTE_STORAGE_MODE=local
 FLOWREMOTE_DATABASE_URL=sqlite:///data/runtime/flowremote.db
 ```
 
-Enterprise deployment:
+Enterprise PostgreSQL mode:
 
 ```text
 FLOWREMOTE_STORAGE_MODE=enterprise
 FLOWREMOTE_ENTERPRISE_DATABASE_URL=postgresql://user:password@db.example.com:5432/flowremote
 ```
 
-`FLOWREMOTE_DATABASE_URL` takes precedence over the enterprise-specific
-variable. The legacy `DATABASE_URL` remains supported. Never commit the real
-connection string. The deployed app user should have only the schema/table
-permissions needed by the application, and the migrations run automatically on
-startup. A DBA can apply
-`src/flowremote/control_plane/migrations/*.sql` ahead of time when production
-policy does not allow runtime DDL.
+`FLOWREMOTE_DATABASE_URL` takes precedence, and the legacy `DATABASE_URL`
+variable remains supported. Other database families can implement the same
+`StorageBackend` protocol without changing authentication or route code.
 
-PostgreSQL support is included through `psycopg[binary]`. If the company uses
-another database family, implement the same `StorageBackend` protocol and pass
-its factory to `create_app` rather than modifying authentication or route code.
+### 3. Excel task creation
 
-## Creating a task
+- Upload `.xlsx` workbooks up to 10 MB.
+- Search up to the first 1,000 rows for a non-empty header row.
+- Accept 1–10,000 data rows and up to 256 columns.
+- Detect blank worksheets, malformed workbooks, wrong file types and missing
+  required columns.
+- Support English and common Chinese headers.
+- Allow column reordering and ignore unrelated extra columns.
+- Store the original workbook with a generated filename.
+- Protect source downloads by task ownership and administrator role.
+- Remove the task, metadata and stored file if import fails partway through.
 
-Sign in and choose **+ New task** on the home page, or open `/tasks/new`.
-Enter a task name and choose an `.xlsx` workbook (up to 10 MB). The first
-worksheet uses its first non-empty row as headers (within the first 1,000 rows),
-followed by 1–10,000 rows, with at most 256 columns. Leading blank rows are
-skipped; blank data rows are ignored when counting the batch size. A title or
-explanatory text before the actual headers is not automatically detected.
+### 4. Deterministic order validation
 
-The task belongs to the signed-in user. Uploading automatically validates the
-orders and opens **Review required**, with counts and exceptions from that file.
-The original workbook is saved under `data/runtime/uploads/` with a generated
-filename; `FLOWREMOTE_UPLOAD_DIR` can override this directory. Back up this
-directory together with the database. Owners and admins can download the
-original from the task page; other operators cannot see or download it.
+The current `orders-v1` rule set checks:
 
-Download `/orders-template.xlsx` from the new-task form. Required fields:
-`order_id`, `customer_name`, `customer_id`, `quantity`, `unit_price`, `amount`,
-`order_date`. Common English and Chinese headers are supported, including
-订单号、客户名称、客户编号、数量、单价、金额、订单日期. Columns may be reordered;
-extra columns are ignored. Missing or ambiguous required columns reject the
-upload without saving a partial task. Save IDs as text to retain leading zeros.
+- `order_id`
+- `customer_name`
+- `customer_id`
+- `quantity`
+- `unit_price`
+- `amount`
+- `order_date`
 
-The current `orders-v1` rules check:
+Validation includes:
 
-- All seven fields are required. IDs are compared exactly after trimming spaces;
-  duplicate order IDs within the same file flag every affected row.
-- Quantity is a positive whole number up to 1 billion.
-- Unit price and amount are non-negative numbers with at most two decimal
-  places, no larger than 1 trillion. Numeric text uses a dot decimal separator
-  and no grouping separators. Amount must equal quantity × unit price exactly.
-- Dates accept actual Excel dates, `YYYY-MM-DD` and `YYYY/MM/DD`; impossible
-  dates are rejected. Formulas are not evaluated: paste their values first.
-- Multiple issues on one order produce one exception with all reasons. Its Excel
-  row number, original values, original workbook and rule version are retained.
-  Only an amount-only error receives a quantity × unit price suggestion. No
-  customer registry lookup or AI inference is performed.
+- Required values.
+- Duplicate order IDs within one uploaded batch.
+- Positive whole-number quantity.
+- Finite, non-negative monetary values with at most two decimal places.
+- Exact decimal amount = quantity × unit price.
+- Real dates in supported Excel or text formats.
+- Formula cells that have not been evaluated.
+- Batch uniqueness after manual corrections.
 
-**Accept** applies the calculated amount. **Edit order → Save & recheck** checks
-all fields and uniqueness again before saving. **Skip** excludes an order.
-Corrections and review decisions commit together, while original values and
-initial analysis counts remain unchanged for audit. Unresolved exceptions block
-approval. Exceptions paginate in groups of 100; the gate counts the whole task.
+The system retains:
 
-Tasks uploaded before this feature retain their files and have a **Validate
-uploaded orders** button. Repeat validation does not erase existing decisions.
-The existing seeded demonstration task and its exceptions remain explicitly
-labelled demo data. Real OA/BI execution is still not implemented.
+- Original Excel row number.
+- Original values.
+- Current values.
+- Issue codes and messages.
+- Validation rule version.
+- Original uploaded workbook.
 
-## Reviewing an exception
+### 5. Exception review and approval gate
 
-Open TASK-1001 as the operator account. Every unresolved row has three controls:
+Each unresolved exception supports:
 
-- **Accept** keeps the AI suggestion (disabled when there is no suggestion).
-- **Skip** removes the record from the run.
-- **Save** next to the value box records your own value.
+- **Accept** — use the verified AI suggestion.
+- **Edit order** — replace values manually and re-run all checks.
+- **Skip** — exclude the record from execution.
 
-Each action writes one row to Decisions and lowers the unresolved counter. The
-banner above the table shows the approval gate: it opens only when the counter
-reaches zero.
+Each action creates an append-only decision row. A client decision ID prevents
+double-clicks from creating duplicate decisions.
 
-## Getting and accepting an AI suggestion
+The approval gate remains closed while any exception is unresolved. Approval:
 
-Use **Generate AI suggestion** on an unresolved exception. The default provider
-is deterministic and needs no network. It can:
+- Is allowed only when unresolved exceptions reach zero.
+- Creates exactly one approval row.
+- Creates exactly one execution run for the attempt.
+- Cannot be repeated to produce a second write.
 
-- recover a missing `customer_id` or `customer_name` only from one exact
-  customer-registry match;
-- calculate an amount from quantity × unit price;
-- return no suggestion when the evidence is insufficient.
+### 6. Grounded AI exception suggestions
 
-The page shows each proposed value with confidence, explanation and evidence.
-An AI response that names an invented customer, omits part of a multi-field
-correction, fails the normal order checks, or falls below 70% confidence is not
-offered for Accept. The operator can still use Edit or Skip.
+The `agent/` layer provides provider-independent suggestions:
 
-Generating a suggestion never changes the exception state and never approves or
-executes a batch. Accept re-applies the structured suggestion to the correct
-fields and runs the same full validation used by manual corrections.
+- Deterministic offline provider for network-free demos and tests.
+- OpenAI Responses API provider using schema-constrained structured output.
+- Per-user AI provider, model, base URL and API-key configuration.
+- Encrypted API-key storage derived from the application session secret.
+- Customer candidate retrieval before generation.
+- Field-level value, confidence, reason and evidence.
+- No suggestion when evidence is insufficient.
+- No invented customer IDs.
+- No partial multi-field correction accepted as complete.
+- Revalidation against all normal order rules.
+- 70% minimum confidence for direct Accept.
+- Idempotent request IDs and append-only suggestion-run audit records.
+- AI-generated content never bypasses human review, approval or execution.
 
-To use a live model, copy `.env.example` to `.env` and set:
+AI behavior examples:
+
+- Missing `customer_id` with one exact customer-registry match can be suggested.
+- Ambiguous or missing customer identity returns no guess.
+- Missing quantity without evidence returns no guess.
+- Amount mismatch with valid quantity and price can be calculated.
+
+API keys are never stored in browser `localStorage` or IndexedDB and are never
+returned to the client in plaintext.
+
+### 7. Execution progress, results and audit
+
+After approval, FlowRemote creates an execution run and shows:
+
+- Approved record count.
+- Written record count.
+- Synced record count.
+- Progress percentage.
+- Execution duration.
+- Success rate.
+- Per-run result banner.
+- Activity timeline.
+
+The current execution engine processes 20 records per step and demonstrates:
+
+- Progress from 0 to the approved count.
+- Completion and results.
+- Partial failure through `FLOWREMOTE_EXECUTION_FAIL_AT`.
+- Repeat-step and repeat-approval protection.
+- Append-only activity events.
+- JSON audit export at `/tasks/{task_id}/activity.json`.
+
+**Important:** every OA/BI target is simulated. The database counters and audit
+events are real, but no external enterprise system is written.
+
+### 8. Local-first synchronization and offline review
+
+The server remains authoritative. The browser keeps an IndexedDB cache containing:
+
+- Latest visible task snapshot.
+- Exceptions and revisions.
+- Latest execution run.
+- Verified AI suggestions and evidence.
+- Sync cursor.
+- Pending offline operations in an Outbox.
+
+When offline, a user can queue:
+
+- Accept.
+- Skip.
+- Single-field or multi-field Edit.
+
+When the network returns:
+
+- Operations are sent one at a time.
+- Decision IDs provide idempotency.
+- The task revision is checked.
+- Stale changes return `409 revision_conflict`.
+- A newer change on another device is never silently overwritten.
+
+The header displays `Synced`, `Queued`, `Offline cache`, `Conflict` or an
+availability warning.
+
+### 9. PWA and offline cache
+
+- Installable PWA manifest.
+- Root-scoped service worker.
+- App-shell caching.
+- Network-first page navigation.
+- Cache-first static assets.
+- Offline summary page driven by IndexedDB.
+- Account-bound local cache.
+- Automatic local-cache clearing on logout and login pages.
+- Manual **Clear local cache** action in AI settings.
+
+This prevents a second account using the same browser from seeing the previous
+account's cached tasks or AI content.
+
+### 10. Demonstration and documentation
+
+- Bundled seed data: 100 orders, 88 passed and 12 flagged.
+- Demo accounts for operator and administrator roles.
+- Self-contained Feature 3 demo:
+
+```powershell
+.\.venv\Scripts\python.exe demo\run_feature3_demo.py
+```
+
+- Automated Feature 3 demo check:
+
+```powershell
+.\.venv\Scripts\python.exe demo\run_feature3_demo.py --check
+```
+
+---
+
+## Architecture
+
+```text
+Browser / Installable PWA
+├── Jinja-rendered HTML
+├── IndexedDB snapshot cache
+├── Offline Outbox
+├── Service Worker
+└── AI settings and review UI
+          │
+          ▼ HTTPS
+FastAPI application
+├── Authentication and role guards
+├── Task and upload routes
+├── Review and approval rules
+├── AI suggestion and settings routes
+├── Sync snapshot / pull / operation APIs
+├── Execution controls and audit export
+└── StorageBackend
+          │
+          ├── SQLite (local)
+          └── PostgreSQL (enterprise target)
+
+AI providers
+├── Offline grounded rules
+└── OpenAI Responses API
+
+RPA targets
+└── SimulatedTarget / SimulatedFailure
+```
+
+### Source layout
+
+```text
+src/flowremote/
+  contracts/      enums, domain models, time format
+  control_plane/  storage, auth, validation, review, decisions, sync, activity
+  agent/          AI provider contracts, orchestration, validation, settings
+  rpa/            execution step rules
+  connectors/     simulated OA/BI targets
+  api/            FastAPI app, dependencies and routes
+  ui/             Jinja templates, CSS, JavaScript, PWA assets
+  devtools/       seed data and local helpers
+```
+
+### Technical stack
+
+- Python 3.13
+- FastAPI
+- Uvicorn
+- Jinja2
+- Pydantic
+- SQLite
+- PostgreSQL via `psycopg`
+- OpenAI Python SDK and Responses API structured output
+- `cryptography` for encrypted AI credentials
+- openpyxl for Excel parsing
+- Native JavaScript
+- IndexedDB
+- Service Worker / Web App Manifest
+- pytest
+
+---
+
+## Data model
+
+Core business tables:
+
+- `users`
+- `tasks`
+- `source_records`
+- `exceptions`
+- `decisions`
+- `approvals`
+- `task_uploads`
+- `order_inputs`
+- `task_validations`
+- `execution_runs`
+- `activity_events`
+- `ai_suggestion_runs`
+- `ai_suggestion_items`
+- `ai_settings`
+- `devices`
+- `sync_clock`
+- `sync_changes`
+- `schema_version`
+
+Important invariants:
+
+- Users are globally unique by email.
+- One task approval is unique per attempt.
+- One approved attempt creates one execution run.
+- Decisions are append-only.
+- Activity events are append-only.
+- Written count cannot exceed approved count.
+- Synced count cannot exceed written count.
+- Exception and task revisions support optimistic concurrency.
+- Sync cursors are monotonic.
+
+---
+
+## HTTP interfaces
+
+### Authentication
+
+| Method | Path |
+| --- | --- |
+| GET | `/login` |
+| POST | `/login` |
+| GET | `/signup` |
+| POST | `/signup` |
+| POST | `/logout` |
+
+### Tasks and uploads
+
+| Method | Path |
+| --- | --- |
+| GET | `/` |
+| GET | `/tasks/new` |
+| POST | `/tasks` |
+| GET | `/tasks/{id}` |
+| GET | `/tasks/{id}/source` |
+| POST | `/tasks/{id}/validate` |
+| GET | `/orders-template.xlsx` |
+
+### Review and approval
+
+| Method | Path |
+| --- | --- |
+| POST | `/tasks/{id}/exceptions/{recordId}/decisions` |
+| POST | `/tasks/{id}/exceptions/{recordId}/suggestions` |
+| POST | `/tasks/{id}/proceed` |
+| GET | `/tasks/{id}/approval` |
+| POST | `/tasks/{id}/approval` |
+| POST | `/tasks/{id}/back-to-review` |
+
+### AI settings
+
+| Method | Path |
+| --- | --- |
+| GET | `/settings/ai` |
+| POST | `/settings/ai` |
+
+### Simulation and audit
+
+| Method | Path |
+| --- | --- |
+| GET | `/tasks/{id}/execution` |
+| POST | `/tasks/{id}/execution/step` |
+| GET | `/tasks/{id}/execution.json` |
+| GET | `/tasks/{id}/results` |
+| GET | `/tasks/{id}/activity.json` |
+
+### Local-first synchronization
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/sync/bootstrap` | Register device and return authoritative snapshot |
+| GET | `/api/sync/pull?cursor=N` | Return changes after a cursor |
+| POST | `/api/sync/operations` | Apply a revision-checked idempotent decision |
+| GET | `/sw.js` | Root-scoped service worker |
+| GET | `/static/manifest.webmanifest` | PWA metadata |
+
+---
+
+## Run FlowRemote locally
+
+```powershell
+cd E:\knight_hell
+
+# Install or update dependencies
+uv sync
+
+# Rebuild demonstration data
+.\.venv\Scripts\python.exe src\flowremote\devtools\seed.py --reset --verify
+
+# Start the web application
+.\.venv\Scripts\python.exe -m uvicorn flowremote.api.app:app `
+  --reload --host 127.0.0.1 --port 8000
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+Run tests:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests -q
+```
+
+### Demo accounts
+
+| Email | Password | Role |
+| --- | --- | --- |
+| `alex.morgan@example.com` | `123456` | operator |
+| `admin@example.com` | `123456` | admin |
+
+The demo password is for local demonstration only. Do not deploy these accounts
+to a public production environment.
+
+### AI configuration
+
+Copy `.env.example` to `.env` when environment configuration is needed.
+
+Default demonstration behavior:
+
+```text
+FLOWREMOTE_AI_PROVIDER=offline
+```
+
+Online provider:
 
 ```text
 FLOWREMOTE_AI_PROVIDER=openai
@@ -175,104 +496,145 @@ FLOWREMOTE_AI_MODEL=gpt-6-astra
 OPENAI_API_KEY=...
 ```
 
-Signed-in users can also open **AI settings** from the header. The window saves
-the provider, model and optional Responses-compatible base URL for that account.
-An entered API key is encrypted with a key derived from the application secret;
-the browser only receives a masked hint afterwards. Leaving the key blank keeps
-the saved key, and **Remove the saved API key** deletes it.
+Users can also configure provider, model, base URL and encrypted key from the
+in-app **AI settings** window.
 
-The connection window validates HTTPS endpoints and permits HTTP only for
-localhost development. It deliberately does not send a test request when saved,
-so configuration can be prepared without a working or billable API account.
-Until a request is made, a saved configuration only affects which provider and
-model Feature 3 will use for the next exception suggestion.
+---
 
-The OpenAI provider uses the Responses API with schema-constrained structured
-output. Missing credentials, network errors and malformed responses are stored
-as failed or invalid suggestion runs and do not expose the API key or block
-manual review. The customer registry defaults to
-`data/seed/customer_registry.csv`; `FLOWREMOTE_CUSTOMER_REGISTRY` can override
-it. Regenerating after a failure does not overwrite the last verified
-suggestion.
+## Tests and verification
 
-## Approving the batch
+Current repository status:
 
-When the counter reaches zero the banner offers **Proceed**. The approval page
-shows input / skipped / ready / unresolved, the source file and the two targets,
-then **Approve & Execute** (or **Back to review**). Approving writes exactly one
-row to Approvals, one row to `execution_runs` for that attempt, moves the task
-to `executing`, and cannot be repeated.
+- **230 tests passed**
+- **11 subtests passed**
+- Python compilation passed
+- Browser JavaScript syntax passed
+- All migrations `0001` through `0007` applied successfully
+- Seed data reproduces 100 input / 88 passed / 12 flagged
+- Feature 3 automated demo passes all nine checks
 
-## Watching an approved batch execute
+Coverage includes:
 
-`/tasks/{id}/execution` advances the run in steps of 20 records. In the browser
-the page does it on its own (one request every 400 ms); without JavaScript the
-**Run next 20 records** button moves one step at a time. Each step writes and
-syncs the same records, so `written_count` and `synced_count` never diverge
-(BR-5).
+- Password hashing and session signing.
+- Registration persistence across app restart.
+- Operator/admin task isolation.
+- Workbook parsing and upload limits.
+- Order validation and correction.
+- AI settings, encryption and per-user isolation.
+- Offline/online AI provider behavior.
+- Review decisions and approval gate.
+- Execution progression, completion and partial failure.
+- Activity log export.
+- Sync bootstrap, device registration, pull cursor and PWA assets.
+- Offline decision idempotency and revision conflicts.
+- Multi-field offline corrections.
+- Local and enterprise storage selection.
 
-The run finishes as `complete` and the task moves to `complete`; the results page
-shows success as written over input (99/100), the measured duration (the clock
-starts at the first step, not at the approval) and the success rate, then the
-activity log. `/tasks/{id}/activity.json` exports the same events for an audit
-trail.
+---
 
-To demonstrate a failed write, set the demonstration switch before starting the
-server: `FLOWREMOTE_EXECUTION_FAIL_AT=25`. The run stops after 24 records,
-`execution_runs.status` becomes `partial`, an `execution_failed` event is
-logged, and the task deliberately stays `executing` — the task table has no
-`partial` state, and the run is the honest place to record where it stopped.
+## Not implemented or not production-ready
 
-Every target is simulated: `connectors/demo.py` opens no socket, and both the
-progress page and the results page say so.
+### RPA execution
 
-## Demo accounts
+- External OA, BI, Excel Online or enterprise APIs are not connected.
+- Execution targets are simulated.
+- The browser polling endpoint currently advances simulated execution.
+- There is no independent background Worker or device agent.
+- There is no lease, heartbeat, distributed lock or worker recovery.
 
-| Email | Password | Role | Sees |
-| --- | --- | --- | --- |
-| `alex.morgan@example.com` | `123456` | operator | only TASK-1001 |
-| `admin@example.com` | `123456` | admin | every task |
+### Failure recovery
 
-`/signup` also works: a new account starts with no tasks and sees "No tasks
-yet". The demo password exists only for local demos; remove those accounts
-before any real deployment.
+- Partial execution cannot be retried or resumed.
+- There is no Cancel/Pause state machine.
+- There is no per-record receipt or remote reconciliation.
+- The task state has no dedicated `partial`, `cancelled` or `paused` value.
 
-## The data behind it
+### Workflow platform
 
-The seed creates:
+- No workflow-template builder.
+- No scheduled triggers.
+- No queue management.
+- No multiple workflow definitions.
+- Zero-exception uploads currently still enter the review screen.
+- No separate queued-to-running workflow launcher.
 
-- `data\seed\customer_registry.csv` - 120 customers
-- `data\seed\Orders_September.xlsx` - the 100 order source workbook
-- `data\runtime\flowremote.db` - one task, 100 source records (88 passed,
-  12 flagged), 12 unresolved exceptions, 0 decisions, 0 approvals
+### Enterprise security
 
-## Layout
+- No CSRF token on state-changing forms.
+- No login rate limiting or account lockout.
+- No password reset or email verification.
+- No MFA.
+- No server-side session revocation.
+- Device rows are registered but remote device revocation is not implemented.
+- No organization/tenant model.
+- Only operator/admin roles exist.
+- No approver, auditor or integration-admin roles.
 
-```
-src/flowremote/
-  contracts/      enums, domain models, time format
-  control_plane/  database, migrations, review rules, accounts, activity log
-  api/            FastAPI app, sessions, routes
-  ui/             templates and static assets
-  agent/          suggestion providers, safeguards and audit orchestration
-  rpa/            execution step rules (simulated runner)
-  connectors/     simulated OA / BI targets
-  devtools/       seed data and local helpers
-```
+### File and data storage
 
-## Not built yet
+- Uploaded files use local disk rather than enterprise object storage.
+- No virus scanning.
+- No retention/deletion automation.
+- No signed object-storage URLs.
+- PostgreSQL configuration exists, but no real enterprise database was connected
+  during verification.
 
-Retry after a partial write and the real OA/BI connectors. Execution itself is
-simulated: the counts are real database state, the outward writes are not. A
-live AI provider is implemented but requires the operator's own API key; the
-offline provider is the default for tests and demonstrations.
+### Local-first limitations
 
-## Notes
+- Offline support currently covers Accept/Edit/Skip on a loaded review page.
+- Task creation and AI generation require a server connection.
+- Full workflow browsing while offline uses only the cached snapshot.
+- Conflict resolution requires the user to reload/review the newer server state.
+- Service Worker behavior has syntax and static-asset tests, but no full
+  Playwright offline browser suite yet.
 
-- `docs/project-summary.md` describes the whole project and its interfaces.
-- `docs/p2-report.md` records what P2 changed and how it was verified.
-- `docs/p3-report.md` records what P3 changed and how it was verified.
-- `docs/p4-report.md` records what P4 changed and how it was verified.
-- `docs/p5-report.md` records what the Week 6 feature changed and how it was verified.
-- `docs/p6-report.md` records the Feature 3 design, safeguards and verification.
-- `prompts/prompt-log.md` is the AI-use log required by the course.
+### Operations
+
+- No Docker/Kubernetes deployment package.
+- No CI/CD pipeline checked into the repository.
+- No metrics endpoint or tracing.
+- No automated backup/restore.
+- No antivirus, SIEM or enterprise secret manager integration.
+- No high-volume load test.
+
+### AI
+
+- The online provider adapter is tested with a fake client, not a paid live API
+  call.
+- No completed evaluation set or acceptance-rate dashboard.
+- No batch generation for all exceptions.
+- No automatic decisions or training.
+- External-model data-governance policy remains deployment-specific.
+
+---
+
+## Recommended next work
+
+The most valuable next milestone is a **real promotional execution loop**, not
+more UI features:
+
+1. Add a database-backed Worker with leases and heartbeats.
+2. Implement a real Local Excel Connector.
+3. Implement a bundled Local HTTP Target Connector.
+4. Record one receipt per external record.
+5. Add Retry failed only, Resume, Pause, Cancel and reconciliation.
+6. Add server-side sessions, CSRF, rate limits and device revocation.
+7. Add one approved enterprise OA/BI connector using real API documentation.
+8. Add Playwright end-to-end and offline browser tests.
+
+After those are complete, FlowRemote can credibly move from a promotional
+prototype to a pilot-ready AI-RPA control plane.
+
+---
+
+## Documentation
+
+- `docs/project-summary.md` — overall project history and interfaces.
+- `docs/flowremote-prd.md` — product requirements.
+- `docs/flowremote-state-machine-spec.md` — lifecycle and transition rules.
+- `docs/p5-report.md` — execution, results and audit implementation.
+- `docs/p6-report.md` — AI suggestions, AI settings and storage boundary.
+- `docs/p7-local-sync.md` — local-first cache, Outbox and PWA design.
+- `docs/flowremote-layered-architecture.html` — visual layered architecture.
+- `demo/README.md` — demo commands and walkthrough.
+- `prompts/prompt-log.md` — AI-use and implementation prompt log.

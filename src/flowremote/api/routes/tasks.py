@@ -133,7 +133,8 @@ def load_task_page(db: Database, user: User, task_id: str, page: int = 1) -> dic
     for row in db.query(
             "SELECT e.id, e.record_id, e.issue, e.flagged_fields, e.original_value,"
             " e.suggestion, e.confidence, e.reason, e.status, e.resolved_value,"
-            " e.reviewed_at, u.name AS reviewer_name, i.excel_row, i.order_id, i.current_json"
+            " e.revision, e.reviewed_at, u.name AS reviewer_name,"
+            " i.excel_row, i.order_id, i.current_json"
             " FROM exceptions e LEFT JOIN users u ON u.id = e.reviewed_by"
             " LEFT JOIN order_inputs i ON i.task_id = e.task_id AND i.record_id = e.record_id"
             " WHERE e.task_id = ? ORDER BY i.excel_row, e.record_id LIMIT 100 OFFSET ?",

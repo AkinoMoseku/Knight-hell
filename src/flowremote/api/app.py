@@ -14,6 +14,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -24,6 +25,7 @@ from flowremote.api.routes import execution as execution_routes
 from flowremote.api.routes import review as review_routes
 from flowremote.api.routes import session as session_routes
 from flowremote.api.routes import suggestions as suggestion_routes
+from flowremote.api.routes import sync as sync_routes
 from flowremote.api.routes import tasks as task_routes
 from flowremote.api.routes import uploads as upload_routes
 from flowremote.api.sessions import SessionSigner, load_or_create_secret
@@ -60,7 +62,7 @@ def create_app(
             db.apply_migrations()
         yield
 
-    app = FastAPI(title="FlowRemote", version="0.3.0", lifespan=lifespan)
+    app = FastAPI(title="FlowRemote", version="0.4.0", lifespan=lifespan)
     app.state.database_url = url
     app.state.database_factory = database_factory
     app.state.storage = storage
@@ -77,11 +79,24 @@ def create_app(
     app.state.signer = SessionSigner(secret)
     app.state.templates = Jinja2Templates(directory=str(UI_ROOT / "templates"))
     app.mount("/static", StaticFiles(directory=str(UI_ROOT / "static")), name="static")
+
+    @app.get("/sw.js", include_in_schema=False)
+    def service_worker():
+        return FileResponse(
+            UI_ROOT / "static" / "sw.js",
+            media_type="application/javascript",
+            headers={
+                "Service-Worker-Allowed": "/",
+                "Cache-Control": "no-cache",
+            },
+        )
+
     app.include_router(ai_settings_routes.router)
     app.include_router(session_routes.router)
     app.include_router(upload_routes.router)
     app.include_router(task_routes.router)
     app.include_router(review_routes.router)
+    app.include_router(sync_routes.router)
     app.include_router(suggestion_routes.router)
     app.include_router(approval_routes.router)
     app.include_router(execution_routes.router)

@@ -27,6 +27,7 @@ from flowremote.contracts.enums import ActorKind, RunState
 from flowremote.contracts.models import ExecutionRun, ModelError, User
 from flowremote.control_plane.activity import ENGINE_NAME, log_event, recent_events
 from flowremote.control_plane.db import Database, utc_now
+from flowremote.control_plane.sync import touch_task
 from flowremote.rpa.execution import (
     STEP_SIZE,
     ExecutionError,
@@ -211,6 +212,7 @@ def execution_step(
                     "failure": outcome.failure,
                 },
             )
+        touch_task(db, task_id)
 
     updated = _run_model(db, task_id) or run
     if _wants_json(request):

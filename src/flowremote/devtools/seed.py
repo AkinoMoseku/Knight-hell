@@ -183,6 +183,12 @@ def wipe_task(db: Database) -> None:
             (TASK_ID,),
         )
         db.execute("DELETE FROM ai_suggestion_runs WHERE task_id = ?", (TASK_ID,))
+        db.execute("DELETE FROM sync_changes WHERE task_id = ?", (TASK_ID,))
+        db.execute(
+            "DELETE FROM devices WHERE user_id IN "
+            "(SELECT id FROM users WHERE email IN (?, ?))",
+            (OPERATOR_EMAIL, ADMIN_EMAIL),
+        )
         db.execute(
             "DELETE FROM ai_settings WHERE user_id IN "
             "(SELECT id FROM users WHERE email IN (?, ?))",

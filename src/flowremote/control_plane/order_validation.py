@@ -8,6 +8,7 @@ from decimal import Decimal, InvalidOperation
 
 from flowremote.control_plane.activity import VALIDATOR_NAME, log_event
 from flowremote.control_plane.db import new_id, utc_now
+from flowremote.control_plane.sync import touch_task
 from flowremote.contracts.enums import ActorKind
 
 FIELDS = (
@@ -258,6 +259,7 @@ def save_analysis(db, task_id, header_row, results, summary):
         "UPDATE tasks SET status = 'review_required', batch_size = ?, updated_at = ? WHERE id = ?",
         (len(results), now, task_id),
     )
+    touch_task(db, task_id)
     flagged = sum(1 for result in results if result["issues"])
     log_event(
         db,

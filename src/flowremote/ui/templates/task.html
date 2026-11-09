@@ -156,6 +156,7 @@
           <form method="post" class="action-form"
                 action="/tasks/{{ task.id }}/exceptions/{{ item.record_id }}/decisions">
             <input type="hidden" name="decision_id" value="{{ item.decision_id }}">
+            <input type="hidden" name="base_revision" value="{{ item.revision }}">
             <button class="btn-mini" name="action" value="accept"
                     {% if not item.suggestion %}disabled title="No suggestion to accept"{% endif %}>Accept</button>
             <button class="btn-mini btn-mini-skip" name="action" value="skip">Skip</button>

@@ -21,6 +21,7 @@ from flowremote.api.routes.tasks import load_task_page
 from flowremote.contracts.models import User
 from flowremote.control_plane.activity import log_event
 from flowremote.control_plane.db import Database, utc_now
+from flowremote.control_plane.sync import touch_task
 
 router = APIRouter()
 
@@ -86,6 +87,7 @@ def proceed(
             "UPDATE tasks SET status = 'pending_approval', updated_at = ? WHERE id = ?",
             (now, task_id),
         )
+        touch_task(db, task_id)
         log_event(
             db,
             task_id=task_id,
@@ -138,6 +140,7 @@ def approve(
             "UPDATE tasks SET status = 'executing', updated_at = ? WHERE id = ?",
             (now, task_id),
         )
+        touch_task(db, task_id)
         # The run belongs to this attempt: UNIQUE (task_id, attempt) plus the
         # approval guard above means one approval can only ever start one run.
         db.execute(
@@ -182,6 +185,7 @@ def back_to_review(
             "UPDATE tasks SET status = 'review_required', updated_at = ? WHERE id = ?",
             (now, task_id),
         )
+        touch_task(db, task_id)
         log_event(
             db,
             task_id=task_id,

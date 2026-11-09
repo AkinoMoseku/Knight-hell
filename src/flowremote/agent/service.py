@@ -28,6 +28,7 @@ from flowremote.control_plane.order_validation import (
     validate_order,
     validate_proposed_changes,
 )
+from flowremote.control_plane.sync import touch_exception, touch_task
 
 MIN_ACCEPT_CONFIDENCE = 0.70
 DEFAULT_REGISTRY = PROJECT_ROOT / "data" / "seed" / "customer_registry.csv"
@@ -417,11 +418,15 @@ def run_suggestion(
                 "UPDATE exceptions SET suggestion = ?, confidence = ? WHERE id = ?",
                 (summary, confidence, exception.id),
             )
+            touch_exception(db, task_id, record_id)
+            touch_task(db, task_id)
         elif status is SuggestionState.COMPLETED:
             db.execute(
                 "UPDATE exceptions SET suggestion = NULL, confidence = NULL WHERE id = ?",
                 (exception.id,),
             )
+            touch_exception(db, task_id, record_id)
+            touch_task(db, task_id)
         log_event(
             db,
             task_id=task_id,

@@ -27,6 +27,8 @@ TABLES = (
     "ai_suggestion_runs",
     "activity_events",
     "execution_runs",
+    "sync_changes",
+    "devices",
     "decisions",
     "approvals",
     "exceptions",

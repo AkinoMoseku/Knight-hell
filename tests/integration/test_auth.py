@@ -18,8 +18,8 @@ from flowremote.control_plane.db import PROJECT_ROOT, Database  # noqa: E402
 DB_PATH = PROJECT_ROOT / "data" / "runtime" / "tests" / "app.db"
 DB_URL = f"sqlite:///{DB_PATH.as_posix()}"
 TABLES = ("ai_suggestion_items", "ai_suggestion_runs", "activity_events", "execution_runs",
-          "decisions", "approvals", "exceptions", "source_records", "ai_settings",
-          "tasks", "users")
+          "sync_changes", "devices", "decisions", "approvals", "exceptions",
+          "source_records", "ai_settings", "tasks", "users")
 
 
 def seed_task(db: Database, task_id: str, owner: str, workflow: str, batch: int) -> None:

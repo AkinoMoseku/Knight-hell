@@ -34,6 +34,18 @@ What to demonstrate:
 7. `ORD-002` has no reliable quantity evidence, so the offline provider should
    return no guess.
 
+To demonstrate the local-first PWA flow:
+
+1. Load `TASK-FEATURE3` while online so the browser stores its current snapshot.
+2. In browser DevTools, set Network to **Offline**.
+3. Click Accept or Skip for an unresolved exception.
+4. The row is marked **Queued locally** and the header reports the pending count.
+5. Restore the network. The Outbox posts the operation with its decision ID and
+   base revision, then reloads the authoritative server state.
+6. The offline fallback page displays the last cached tasks and verified AI
+   suggestions. Opening a login page or signing out clears the account-bound
+   local cache.
+
 Use `--no-browser` when starting it from another terminal. Run a repeatable
 automated check without starting a web server:
 

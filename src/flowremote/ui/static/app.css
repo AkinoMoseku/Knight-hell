@@ -363,6 +363,46 @@ a:hover { text-decoration: underline; }
   border-color: rgba(76, 180, 171, 0.55);
   color: #a9f1eb;
 }
+
+.sync-status {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.sync-status[data-state="online"] {
+  border-color: rgba(76, 180, 171, 0.55);
+  color: #9ce8df;
+}
+
+.sync-status[data-state="offline"],
+.sync-status[data-state="pending"],
+.sync-status[data-state="conflict"] {
+  border-color: rgba(255, 184, 76, 0.7);
+  color: #ffd38a;
+}
+
+.offline-queued {
+  opacity: 0.78;
+  background: rgba(255, 184, 76, 0.06);
+}
+
+.offline-queued::after {
+  content: "Queued locally";
+  display: inline-block;
+  margin-left: 6px;
+  color: #ffd38a;
+  font-size: 10px;
+}
+
+.local-data-panel {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
 .gate-actions { display: flex; align-items: center; gap: 10px; }
 .progress { margin: 18px 0 6px; }
 .progress-track {

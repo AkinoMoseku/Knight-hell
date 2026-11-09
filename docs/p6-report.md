@@ -104,7 +104,7 @@ and uses the official Python SDK.
 
 | Scope | Result |
 | --- | --- |
-| Complete repository suite | 222 passed, 11 subtests passed |
+| Complete repository suite | 230 passed, 11 subtests passed |
 | Feature 3 unit tests | offline grounding, no-guess behaviour, OpenAI adapter, missing key |
 | Feature 3 integration tests | generation, correct-field Accept, idempotency, invalid values, partial correction, provider failure, low confidence, regeneration, guards |
 | Regression | existing review, approval, execution and upload tests pass |

@@ -232,7 +232,7 @@ OpenAI 模型返回结构化字段建议。建议必须通过现有 `orders-v1` 
 | UI | 建议值、置信度、理由、证据、失败原因与生成/重新生成按钮 |
 | Accept | 按结构化字段写回，不再固定写 `amount`；写回前再次全量校验 |
 | 配置 | `FLOWREMOTE_AI_PROVIDER=offline/openai`、模型、API Key、客户目录 |
-| 测试 | 全套 222 passed；Feature 3 新增 28 个专项测试，持久化/部署新增 7 个 |
+| 测试 | 全套 230 passed；Feature 3 新增 28 个专项测试，持久化/部署新增 7 个，本地同步新增 8 个 |
 | 限制 | 默认离线；真实模型需 API Key。未实现批量生成、自动决策和真实 OA/BI |
 
 详细设计与安全边界见 [p6-report.md](p6-report.md)。
@@ -248,3 +248,23 @@ OpenAI 模型返回结构化字段建议。建议必须通过现有 `orders-v1` 
 `FLOWREMOTE_ENTERPRISE_DATABASE_URL=postgresql://...` 后切换到 PostgreSQL。
 `FLOWREMOTE_DATABASE_URL` 可显式覆盖，旧 `DATABASE_URL` 继续兼容。
 其他企业数据库类型只需实现同一协议，不需要修改认证和路由。
+
+### 本地优先同步与 PWA
+
+服务器仍是任务、异常、审批、AI 正式结果和审计的权威来源。浏览器使用
+IndexedDB 保存最近快照、AI 已验证建议和待同步操作。同步状态包括
+Synced、Queued、Offline cache 和 Conflict。
+
+新增接口：
+
+| 方法 | 路径 | 作用 |
+| --- | --- | --- |
+| GET | `/api/sync/bootstrap` | 注册设备并返回完整权威快照与游标 |
+| GET | `/api/sync/pull?cursor=N` | 拉取游标之后的变更 |
+| POST | `/api/sync/operations` | 幂等、带版本检查地应用离线复核决定 |
+| GET | `/sw.js` | 根作用域 Service Worker |
+
+任务和异常新增 revision；全局同步时钟使用数据库内的单调游标。离线
+Accept/Edit/Skip 进入 Outbox，联网后逐条提交，decision ID 用作幂等键，
+旧 revision 返回 409。应用支持 PWA 安装、离线快照页面，并在退出登录
+时清除本地任务与 AI 缓存，避免下一个账号看到上一个账号的数据。

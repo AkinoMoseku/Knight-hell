@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>FlowRemote offline cache</title>
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css?v=20261109b">
+  <script src="/static/offline-cache.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="mark">FR</span>
+      <span class="brand-text">FlowRemote<small>Offline cache</small></span>
+    </a>
+    <span class="sync-status" data-state="offline">Offline</span>
+  </header>
+  <main class="page">
+    <div class="page-head">
+      <p class="eyebrow">Server unavailable</p>
+      <h1>Last saved work state</h1>
+      <p class="sub" id="offline-updated">Loading the cache on this device…</p>
+    </div>
+    <p class="notice">This is the last server snapshot saved on this device. New offline review
+      decisions are queued locally and synchronize when the connection returns.</p>
+    <section id="offline-tasks" class="offline-tasks"></section>
+  </main>
+</body>
+</html>

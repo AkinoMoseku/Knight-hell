@@ -3,11 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
   <title>{% block title %}FlowRemote{% endblock %}</title>
-  <link rel="stylesheet" href="/static/app.css?v=20261019">
-  <script src="/static/app.js?v=20261019" defer></script>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css?v=20261109b">
+  <script src="/static/app.js?v=20261109b" defer></script>
+  <script src="/static/sync-client.js?v=20261109b" defer></script>
 </head>
-<body>
+<body data-user-id="{{ user.id if user else '' }}">
   <header class="topbar">
     <a class="brand" href="/">
       <span class="mark">FR</span>
@@ -17,8 +21,9 @@
     <div class="who">
       <span class="badge badge-{{ user.role }}">{{ user.role }}</span>
       <span class="who-name">{{ user.name }}</span>
+      <span id="sync-status" class="sync-status" data-state="checking">Checking sync</span>
       <a class="btn-ghost" href="/settings/ai" data-ai-settings-open>AI settings</a>
-      <form method="post" action="/logout" class="inline">
+      <form method="post" action="/logout" class="inline logout-form">
         <button type="submit" class="btn-ghost">Sign out</button>
       </form>
     </div>
