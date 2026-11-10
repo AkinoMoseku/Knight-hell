@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlowRemote — AI-RPA supervision and approval</title>
+  <meta name="description" content="FlowRemote is the human supervision layer for AI-RPA. It validates Excel, BI and OA data work, explains every exception with evidence, and puts a person in front of the final write.">
+  <meta name="theme-color" content="#060b12">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="FlowRemote — Let AI run the workflow. Keep the final say.">
+  <meta property="og:description" content="Exception-first review, evidence-backed AI suggestions and a single-use approval gate for AI-driven data processing.">
+  <meta property="og:image" content="assets/img/flowremote-og.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/img/favicon-64.png">
+  <link rel="apple-touch-icon" href="assets/img/favicon-180.png">
+  <link rel="stylesheet" href="assets/landing.css?v=20261110b">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="logo" href="index.html" aria-label="FlowRemote home">
+        <img src="assets/img/flowremote-lockup.png" alt="FlowRemote" width="720" height="203">
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#why">Why it matters</a>
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="btn btn-ghost" href="demo/">Sign in</a>
+        <a class="btn btn-primary" href="demo/#/signup">Create account</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="dot"></span>AI-RPA · human-in-the-loop</p>
+          <h1>Let AI run the workflow. <span class="highlight">Keep the final say.</span></h1>
+          <p class="hero-lede">
+            FlowRemote is the supervision layer for AI-driven data processing.
+            It checks every row across Excel, BI and OA, explains each exception
+            with evidence, and hands the decision to a person
+            <strong>before anything is written.</strong>
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="demo/">Try the live demo <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost btn-lg" href="demo/#/signup">Create an account</a>
+          </div>
+          <ul class="hero-meta">
+            <li>No install — runs in the browser</li>
+            <li>Seeded demo workspace included</li>
+            <li>FastAPI · Jinja · SQLite</li>
+          </ul>
+          <div class="trust-row" aria-label="Product guarantees">
+            <span class="trust-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              Evidence-backed suggestions
+            </span>
+            <span class="trust-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6l7-3z"/></svg>
+              Human approval gate
+            </span>
+            <span class="trust-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
+              Audit-ready by default
+            </span>
+          </div>
+        </div>
+
+        <div class="hero-visual" id="product" aria-hidden="true">
+          <div class="halo"></div>
+          <div class="app-frame">
+            <div class="app-bar">
+              <div class="app-brand">
+                <img src="assets/img/flowremote-mark.png" alt="" width="256" height="252">
+                FlowRemote <small>Live RPA</small>
+              </div>
+              <div class="app-user"><span class="pill">operator</span> Alex Morgan</div>
+            </div>
+            <div class="app-body">
+              <div class="mock-task-head">
+                <div>
+                  <span class="mono">BATCH-0926</span>
+                  <h3>September order batch</h3>
+                  <p>Orders_September.xlsx · 100 records</p>
+                </div>
+                <span class="pill pill-warn">Review required</span>
+              </div>
+              <div class="mock-stats">
+                <div><b>88</b><span>passed</span></div>
+                <div><b>12</b><span>exceptions</span></div>
+                <div><b>12</b><span>unresolved</span></div>
+              </div>
+              <div class="exception-mock">
+                <div class="exc-head">
+                  <span class="mono">ORD-052</span>
+                  <span class="pill pill-warn">Missing Customer ID</span>
+                </div>
+                <p class="exc-title">Customer name is present, registry ID is blank.</p>
+                <div class="ai-box">
+                  <div class="ai-top">
+                    <span class="ai-badge">AI suggestion</span>
+                    <span class="conf">96% confidence</span>
+                  </div>
+                  <div class="ai-change">
+                    <span class="old">customer_id</span>
+                    <span class="to">→</span>
+                    <span class="new">C-1024</span>
+                  </div>
+                  <p class="evidence">Evidence · exact match for “Northwind Traders” in the customer registry.</p>
+                </div>
+                <div class="mock-actions">
+                  <span class="mini mini-primary">Accept</span>
+                  <span class="mini">Edit</span>
+                  <span class="mini">Skip</span>
+                </div>
+              </div>
+              <div class="gate-mock"><span class="lock-dot"></span><span>Approval gate closed · <b>12 unresolved</b></span></div>
+            </div>
+          </div>
+          <div class="float-card">
+            <span class="float-icon">✓</span>
+            <div><b>Audit trail written</b><span>Every decision, actor and timestamp.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section why" id="why">
+      <div class="wrap">
+        <div class="section-head split">
+          <div>
+            <p class="eyebrow-line">Why FlowRemote</p>
+            <h2>Automation is fast.<br><span class="teal">Trust is the bottleneck.</span></h2>
+          </div>
+          <p class="lead">
+            A bot can move thousands of rows before anyone notices a bad one.
+            FlowRemote puts the review, the evidence and the approval exactly
+            where the risk is.
+          </p>
+        </div>
+        <div class="pain-grid">
+          <article class="pain-card">
+            <span class="pain-num">01 / accountability</span>
+            <h3>The bot owns the work. Nobody owns the outcome.</h3>
+            <p>Autonomy without a named approver turns one wrong field into a compliance incident — and no one can say who let it through.</p>
+          </article>
+          <article class="pain-card">
+            <span class="pain-num">02 / exceptions</span>
+            <h3>Exceptions live in spreadsheets and chat.</h3>
+            <p>Missing IDs, impossible dates and amount mismatches hide in row 4,812. Tracing them by hand is slow, repetitive and easy to get wrong.</p>
+          </article>
+          <article class="pain-card">
+            <span class="pain-num">03 / evidence</span>
+            <h3>There is no story for the auditor.</h3>
+            <p>If you cannot show who approved what, with which evidence and when, the workflow is not ready for production.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tight" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow-line">How it works</p>
+          <h2>From workbook to <span class="nowrap">signed-off</span> batch in four steps.</h2>
+          <p class="lead">One loop, designed around the exception rather than the happy path.</p>
+        </div>
+        <div class="steps">
+          <article class="step">
+            <span class="step-num">01</span>
+            <h3>Upload the workbook</h3>
+            <p>Start with an .xlsx order file. Headers, row count and every required field are validated before a task is created.</p>
+            <span class="step-tag">orders-v1 · up to 10,000 rows</span>
+          </article>
+          <article class="step">
+            <span class="step-num">02</span>
+            <h3>Rules find the exceptions</h3>
+            <p>One exception per order, all reasons together, with the original Excel row, values and rule version kept intact.</p>
+            <span class="step-tag">deterministic validation</span>
+          </article>
+          <article class="step">
+            <span class="step-num">03</span>
+            <h3>AI proposes. You decide.</h3>
+            <p>Grounded suggestions show confidence, explanation and evidence. Accept, edit or skip — nothing is applied automatically.</p>
+            <span class="step-tag">human review</span>
+          </article>
+          <article class="step">
+            <span class="step-num">04</span>
+            <h3>Approve, then watch it run</h3>
+            <p>The gate opens only at zero unresolved. Approve once, follow each write in real time, keep the audit export.</p>
+            <span class="step-tag">single-use approval</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow-line">What is inside</p>
+          <h2>Built for the moment the AI is not sure.</h2>
+          <p class="lead">The guardrails are the product, not a settings page.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <span class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.7 4.6L18 9.2l-4.3 1.6L12 15.4l-1.7-4.6L6 9.2l4.3-1.6L12 3z"/><path d="M18.6 15.4l.8 2.2 2.1.8-2.1.8-.8 2.2-.8-2.2-2.1-.8 2.1-.8.8-2.2z"/></svg>
+            </span>
+            <h3>Evidence, or no suggestion</h3>
+            <p>The offline provider recovers a value only from an exact registry match or quantity × unit price. Invented customers, partial corrections and anything under 70% confidence are rejected before they reach the screen.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+            </span>
+            <h3>An approval gate that cannot be skipped</h3>
+            <p>Unresolved exceptions block approval. Approving writes exactly one approval, opens one execution run, and cannot be replayed.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
+            </span>
+            <h3>Every exception, fully explained</h3>
+            <p>Original values, flagged fields, Excel row number, rule version and confidence stay attached to the decision — even after it is corrected.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 3 18.5V20"/><circle cx="9" cy="7.5" r="3.5"/><path d="M16 11l2 2 4-4"/></svg>
+            </span>
+            <h3>Roles that match responsibility</h3>
+            <p>Operators see the tasks they own. Admins see the workspace. Uploaded source files stay visible to owners and admins only.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
+            </span>
+            <h3>Progress you can watch from a phone</h3>
+            <p>Execution advances in steps of 20 records with written and synced counts kept equal. A partial write stops honestly instead of reporting success.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2.5-6 4 12L16 12h5"/></svg>
+            </span>
+            <h3>Audit-ready by default</h3>
+            <p>Every decision, approval and execution event is appended to an activity log that exports as JSON for review.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tight">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow-line">Who it is for</p>
+          <h2>For the people who sign off — not just the people who script.</h2>
+        </div>
+        <div class="personas">
+          <article class="persona">
+            <span class="who-label">01 · Operations</span>
+            <h3>Operations teams</h3>
+            <p>Finance and operations staff clearing repetitive Excel, BI and OA work without losing control of the exceptions.</p>
+          </article>
+          <article class="persona">
+            <span class="who-label">02 · Approvers</span>
+            <h3>Approvers and team leads</h3>
+            <p>The person accountable for the write. Review the evidence on a phone and approve only what is genuinely ready.</p>
+          </article>
+          <article class="persona">
+            <span class="who-label">03 · Builders</span>
+            <h3>Automation builders</h3>
+            <p>AI-RPA engineers who need a control plane — review, gate and audit — around the bot they have already built.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="demo">
+      <div class="wrap">
+        <div class="demo-panel">
+          <div class="demo-copy">
+            <p class="eyebrow-line">Try the demo</p>
+            <h2>Walk the whole loop in five minutes.</h2>
+            <p class="lead">
+              The workspace ships with one seeded batch: 100 orders, 88 clean
+              rows and 12 exceptions waiting for a decision. Sign in, fix a row
+              with the AI suggestion, approve the batch and watch the writes
+              complete.
+            </p>
+            <ol class="demo-steps">
+              <li>Sign in with one of the demo accounts.</li>
+              <li>Open TASK-1001 and its 12 unresolved exceptions.</li>
+              <li>Generate a suggestion, read its evidence, then accept or edit.</li>
+              <li>When the counter reaches zero, proceed and approve.</li>
+              <li>Watch the run finish and export the activity log.</li>
+            </ol>
+            <div class="demo-actions">
+              <a class="btn btn-primary" href="demo/">Open the live demo <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="btn btn-ghost" href="demo/#/signup">Start from scratch</a>
+            </div>
+          </div>
+          <div class="demo-access">
+            <h3>Demo accounts</h3>
+            <div class="account">
+              <div class="account-top"><span class="pill pill-teal">operator</span><span class="role">Reviewer</span></div>
+              <span class="account-email">alex.morgan@example.com</span>
+              <div class="account-meta"><span>Sees only TASK-1001</span><code>flowremote-demo</code></div>
+            </div>
+            <div class="account">
+              <div class="account-top"><span class="pill pill-admin">admin</span><span class="role">Workspace</span></div>
+              <span class="account-email">admin@example.com</span>
+              <div class="account-meta"><span>Sees every task</span><code>flowremote-demo</code></div>
+            </div>
+            <p class="demo-note">
+              <strong>Demo credentials are for this local coursework build only.</strong>
+              Remove them before any real deployment. OA and BI writes are
+              simulated; the review, approval and audit state in the database is real.
+            </p>
+            <p class="demo-note">
+              <strong>Tip:</strong> start as the operator to walk the full loop.
+              Sign in as the admin to compare the workspace-wide view.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tight" id="faq">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow-line">Questions</p>
+          <h2>What you should know before you click.</h2>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary>Is this a finished commercial RPA product?</summary>
+            <div class="answer">
+              <p>No. FlowRemote is an ENT207TC coursework prototype built by a student team. The review, approval and audit workflows are implemented end to end, but the outward OA and BI writes are simulated. Nothing is sent to a real enterprise system.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Does the AI approve or execute anything?</summary>
+            <div class="answer">
+              <p>Never. AI suggestions are advisory and validated before they are shown. A person accepts, edits or skips each exception, and a separate human action opens the approval gate and starts execution.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Which systems does it connect to?</summary>
+            <div class="answer">
+              <p>Excel order workbooks work end to end today, including header mapping in English and Chinese. The OA and BI targets are simulated connectors behind a replaceable interface, and the database can run on SQLite locally or PostgreSQL for an enterprise deployment.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I run it locally?</summary>
+            <div class="answer">
+              <p>Yes. The project uses Python, uv and FastAPI. Run <code>uv sync</code>, seed the demonstration data, then start uvicorn on port 8000. Local SQLite state survives restarts, and the README documents the full setup, seeding and test commands.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>What happens to the data I upload?</summary>
+            <div class="answer">
+              <p>The demo stores everything locally: SQLite for task state and <code>data/runtime/uploads/</code> for the original workbook. There are no outbound calls unless you configure your own OpenAI-compatible key for live suggestions; the default provider runs offline.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Where is the source and the evidence?</summary>
+            <div class="answer">
+              <p>The project repository contains the README, the PRD, the state-machine specification, weekly reports and the AI-use log required by the course. The application itself links the review and approval state directly to the seeded records, so every claim on this page can be checked in the demo.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap">
+        <img class="cta-mark" src="assets/img/flowremote-mark.png" alt="" width="256" height="252">
+        <h2>Put a person at the end of the automation.</h2>
+        <p>Open the demo workspace and take the seeded batch from exception review to an approved, audited run.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="demo/">Open the live demo <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost btn-lg" href="demo/#/signup">Create an account</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="assets/img/flowremote-lockup.png" alt="FlowRemote" width="720" height="203">
+          <p>Mobile supervision and approval for AI-assisted data processing. Coursework build for ENT207TC.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#how">How it works</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#demo">Live demo</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Account</h4>
+          <ul>
+            <li><a href="demo/">Sign in</a></li>
+            <li><a href="demo/#/signup">Create an account</a></li>
+            <li><a href="#demo">Operator demo</a></li>
+            <li><a href="#demo">Admin demo</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>This build</h4>
+          <ul>
+            <li><a href="#demo">Demo credentials</a></li>
+            <li><span class="muted">FastAPI + Jinja + SQLite</span></li>
+            <li><span class="muted">OA / BI writes simulated</span></li>
+            <li><span class="muted">Action log exportable</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 FlowRemote · ENT207TC group coursework</span>
+        <span class="sim-note">Review state is real. Outward OA/BI writes are simulated.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
